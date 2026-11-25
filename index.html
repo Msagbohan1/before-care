@@ -54,6 +54,19 @@
   .tag.found{background:var(--teal-50);color:var(--teal)}
   .tag.check{background:var(--amber-50);color:var(--amber)}
   [hidden]{display:none!important}
+  .review{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:14px;margin-top:12px}
+  .led{margin-top:14px;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .led-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);font-size:14px}
+  .led-row:last-child{border-bottom:none}
+  .led-main{flex:1;min-width:0}
+  .led-main b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .led-main span{color:var(--ink2);font-size:13px}
+  .led-amt{font-weight:800;white-space:nowrap}
+  .led-x{border:none;background:none;color:var(--red);font-size:22px;line-height:1;min-width:44px;min-height:44px;cursor:pointer}
+  .led-tot{padding:12px;background:var(--soft);font-size:14px}
+  .led-tot div{display:flex;justify-content:space-between;gap:8px;padding:2px 0}
+  .led-tot b{white-space:nowrap}
+  .linkbtn{border:none;background:none;color:var(--red);font-weight:700;text-decoration:underline;cursor:pointer;padding:10px 0;min-height:44px}
   .plansum b{font-weight:700}
   /* results */
   .status{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
@@ -184,6 +197,47 @@
     </div>
   </div>
   <p class="hint" data-t="metHint"></p>
+  <p class="hint" id="fromRec" hidden></p>
+
+  <!-- RECEIPTS -->
+  <div class="upbox" style="margin-top:16px">
+    <p class="upt" data-t="rcTitle"></p>
+    <p class="hint" data-t="rcHint"></p>
+    <label class="btn" for="rcFile" style="margin-top:10px"><span data-t="rcBtn"></span></label>
+    <input type="file" id="rcFile" accept="application/pdf,.pdf,image/*" class="sr">
+    <div class="two" style="margin-top:0">
+      <button type="button" class="btn ghost" id="rcSample" data-t="rcSample"></button>
+      <button type="button" class="btn ghost" id="rcSampleEob" data-t="rcSampleEob"></button>
+    </div>
+    <button type="button" class="btn ghost" id="rcHand" data-t="rcHand"></button>
+    <div id="rcStatus" role="status" aria-live="polite"></div>
+
+    <form id="rcReview" class="review" hidden novalidate>
+      <p class="sub" style="margin-top:0" data-t="rvTitle"></p>
+      <p class="hint" data-t="rvHint"></p>
+      <label for="rv_prov" data-t="rvProv"></label>
+      <input id="rv_prov" class="field" type="text" autocomplete="off">
+      <div class="two">
+        <div><label for="rv_date" data-t="rvDate"></label><input id="rv_date" class="field" type="date"></div>
+        <div><label for="rv_amt" data-t="rvAmt"></label><div class="money"><span>$</span><input id="rv_amt" class="field" type="number" inputmode="decimal" min="0" step="0.01"></div></div>
+      </div>
+      <label for="rv_type" data-t="rvType"></label>
+      <select id="rv_type" class="field">
+        <option value="ded" data-t="tyDed"></option>
+        <option value="coins" data-t="tyCoins"></option>
+        <option value="copay" data-t="tyCopay"></option>
+        <option value="unsure" data-t="tyUnsure"></option>
+      </select>
+      <p class="hint" id="rv_typeHint"></p>
+      <div class="two" style="margin-top:0">
+        <button type="submit" class="btn" data-t="rvAdd"></button>
+        <button type="button" class="btn ghost" id="rvCancel" data-t="rvCancel"></button>
+      </div>
+    </form>
+
+    <div id="ledger"></div>
+    <p class="hint" data-t="rcPrivacy" style="margin-top:10px"></p>
+  </div>
 </section>
 
 <!-- RESULTS -->
@@ -566,6 +620,64 @@ fr:{
 }};
 for(const l in T2) Object.assign(T[l], T2[l]);
 
+/* Words for the receipt tracker */
+const T3 = {
+en:{
+  rcTitle:'Track what you pay', rcHint:'After each visit, add your receipt or the Explanation of Benefits (EOB) your insurer mails you. Your totals update the deductible and out-of-pocket numbers above, so you have your own record to compare with your insurer\'s.',
+  rcBtn:'Add a receipt or EOB (PDF or photo)', rcSample:'Try a sample receipt', rcSampleEob:'Try a sample EOB', rcHand:'Type a payment',
+  rcPrivacy:'Your payments are saved only in this browser on this device. They are never sent anywhere. You can delete them at any time.',
+  rcReading:'Reading your document…', rcReadingPhoto:'Reading your photo… this can take up to a minute the first time.',
+  rcRead:'Check what was found and fix anything wrong before adding it.', rcEob:'This looks like an Explanation of Benefits. The amount below is what your insurer applied to your deductible, the most exact number to use.',
+  rcFail:'Could not read the amount. Type it in below from your receipt.', rcBadType:'Please choose a PDF or a photo.',
+  rcLib:'The reader could not load. Check your internet connection, or type the payment in.',
+  rvTitle:'Check this payment', rvHint:'Nothing is saved until you tap "Add to my record".',
+  rvProv:'Doctor, clinic, or hospital', rvDate:'Date of service', rvAmt:'Amount you paid',
+  rvType:'What was this payment for?', tyDed:'Deductible', tyCoins:'Coinsurance', tyCopay:'Copay', tyUnsure:'Not sure',
+  thDed:'Counts toward your deductible and your out-of-pocket max.', thCoins:'Counts toward your out-of-pocket max (you have already met your deductible for this service).',
+  thCopay:'Usually counts toward your out-of-pocket max but not your deductible.', thUnsure:'Saved, but not counted until you know. Your EOB or your insurer can tell you what it was for.',
+  rvAdd:'Add to my record', rvCancel:'Cancel', rvNeedAmt:'Please enter the amount you paid.', rvAdded:'Added to your record.',
+  ldTitle:'Your payments this year', ldDed:'Counted toward deductible', ldOop:'Counted toward out-of-pocket max', ldUnsure:'Not counted yet ("not sure")',
+  ldOld:'from an earlier year, not counted', ldDelAll:'Delete all my payments', ldDelSure:'Tap again to delete everything', ldDel:'Delete this payment',
+  fromRec:'Filled in from your {n} saved payment(s). You can still change these numbers. Your insurer\'s records are the official ones; if they differ from yours, ask why.',
+},
+es:{
+  rcTitle:'Lleve la cuenta de lo que paga', rcHint:'Después de cada visita, agregue su recibo o la Explicación de Beneficios (EOB) que le envía su aseguradora. Sus totales actualizan el deducible y el máximo de su bolsillo de arriba, así tiene su propio registro para compararlo con el de su aseguradora.',
+  rcBtn:'Agregar recibo o EOB (PDF o foto)', rcSample:'Probar un recibo de ejemplo', rcSampleEob:'Probar una EOB de ejemplo', rcHand:'Escribir un pago',
+  rcPrivacy:'Sus pagos se guardan solo en este navegador, en este dispositivo. Nunca se envían. Puede borrarlos cuando quiera.',
+  rcReading:'Leyendo su documento…', rcReadingPhoto:'Leyendo su foto… la primera vez puede tardar hasta un minuto.',
+  rcRead:'Revise lo que se encontró y corrija lo que no esté bien antes de agregarlo.', rcEob:'Esto parece una Explicación de Beneficios. La cantidad abajo es lo que su aseguradora aplicó a su deducible, el número más exacto.',
+  rcFail:'No se pudo leer la cantidad. Escríbala abajo desde su recibo.', rcBadType:'Por favor elija un PDF o una foto.',
+  rcLib:'No se pudo cargar el lector. Revise su conexión a internet o escriba el pago.',
+  rvTitle:'Revise este pago', rvHint:'No se guarda nada hasta que toque "Agregar a mi registro".',
+  rvProv:'Médico, clínica u hospital', rvDate:'Fecha del servicio', rvAmt:'Cantidad que pagó',
+  rvType:'¿Para qué fue este pago?', tyDed:'Deducible', tyCoins:'Coseguro', tyCopay:'Copago', tyUnsure:'No sé',
+  thDed:'Cuenta para su deducible y su máximo de su bolsillo.', thCoins:'Cuenta para su máximo de su bolsillo (ya cumplió su deducible para este servicio).',
+  thCopay:'Normalmente cuenta para su máximo de su bolsillo, pero no para su deducible.', thUnsure:'Se guarda, pero no se cuenta hasta que lo sepa. Su EOB o su aseguradora le pueden decir para qué fue.',
+  rvAdd:'Agregar a mi registro', rvCancel:'Cancelar', rvNeedAmt:'Por favor escriba la cantidad que pagó.', rvAdded:'Agregado a su registro.',
+  ldTitle:'Sus pagos este año', ldDed:'Contado para el deducible', ldOop:'Contado para el máximo de su bolsillo', ldUnsure:'Aún no contado ("no sé")',
+  ldOld:'de un año anterior, no se cuenta', ldDelAll:'Borrar todos mis pagos', ldDelSure:'Toque otra vez para borrar todo', ldDel:'Borrar este pago',
+  fromRec:'Completado con sus {n} pago(s) guardados. Puede cambiar estos números. Los registros de su aseguradora son los oficiales; si no coinciden con los suyos, pregunte por qué.',
+},
+fr:{
+  rcTitle:'Suivez ce que vous payez', rcHint:'Après chaque visite, ajoutez votre reçu ou le relevé de prestations (EOB) envoyé par votre assureur. Vos totaux mettent à jour la franchise et le plafond ci-dessus : vous avez ainsi votre propre registre à comparer avec celui de votre assureur.',
+  rcBtn:'Ajouter un reçu ou un EOB (PDF ou photo)', rcSample:'Essayer un reçu d\'exemple', rcSampleEob:'Essayer un EOB d\'exemple', rcHand:'Saisir un paiement',
+  rcPrivacy:'Vos paiements sont enregistrés uniquement dans ce navigateur, sur cet appareil. Ils ne sont jamais envoyés. Vous pouvez les supprimer à tout moment.',
+  rcReading:'Lecture de votre document…', rcReadingPhoto:'Lecture de votre photo… la première fois, cela peut prendre jusqu\'à une minute.',
+  rcRead:'Vérifiez ce qui a été trouvé et corrigez ce qui est faux avant de l\'ajouter.', rcEob:'Cela ressemble à un relevé de prestations. Le montant ci-dessous est ce que votre assureur a imputé à votre franchise : c\'est le chiffre le plus exact.',
+  rcFail:'Impossible de lire le montant. Saisissez-le ci-dessous depuis votre reçu.', rcBadType:'Veuillez choisir un PDF ou une photo.',
+  rcLib:'Le lecteur n\'a pas pu se charger. Vérifiez votre connexion ou saisissez le paiement.',
+  rvTitle:'Vérifiez ce paiement', rvHint:'Rien n\'est enregistré avant que vous touchiez « Ajouter à mon registre ».',
+  rvProv:'Médecin, clinique ou hôpital', rvDate:'Date du soin', rvAmt:'Montant payé',
+  rvType:'Ce paiement était pour quoi ?', tyDed:'Franchise', tyCoins:'Coassurance', tyCopay:'Quote-part', tyUnsure:'Je ne sais pas',
+  thDed:'Compte pour votre franchise et votre plafond annuel.', thCoins:'Compte pour votre plafond annuel (vous avez déjà atteint la franchise pour ce soin).',
+  thCopay:'Compte généralement pour votre plafond annuel, mais pas pour la franchise.', thUnsure:'Enregistré, mais non compté tant que vous ne savez pas. Votre EOB ou votre assureur peut vous le dire.',
+  rvAdd:'Ajouter à mon registre', rvCancel:'Annuler', rvNeedAmt:'Veuillez saisir le montant payé.', rvAdded:'Ajouté à votre registre.',
+  ldTitle:'Vos paiements cette année', ldDed:'Compté pour la franchise', ldOop:'Compté pour le plafond annuel', ldUnsure:'Pas encore compté (« je ne sais pas »)',
+  ldOld:'d\'une année précédente, non compté', ldDelAll:'Supprimer tous mes paiements', ldDelSure:'Touchez encore pour tout supprimer', ldDel:'Supprimer ce paiement',
+  fromRec:'Rempli à partir de vos {n} paiement(s) enregistré(s). Vous pouvez encore modifier ces montants. Les registres de votre assureur font foi ; s\'ils diffèrent des vôtres, demandez pourquoi.',
+}};
+for(const l in T3) Object.assign(T[l], T3[l]);
+
 /* ───────── Helpers ───────── */
 let L = 'en';
 try{ const s = localStorage.getItem('beforecare_lang'); if(T[s]) L = s; }catch(e){}
@@ -671,7 +783,7 @@ function parseSBC(text){
     if(co >= 0) return null;                   // coinsurance: no copay, deductible applies
     return undefined;
   };
-  const pcp = visit(after(/primary\s+care\s+visit/i, 180));
+  const pcp = visit(after(/primary\s+care\s+visit\s+to\s+treat[^$%]*?illness/i, 160) || after(/primary\s+care\s+visit(?!s)/i, 180));
   const spec = visit(after(/specialist\s+visit/i, 140));
   if(pcp !== undefined) r.pcp = pcp;
   if(spec !== undefined) r.spec = spec;
@@ -694,7 +806,7 @@ function parseSBC(text){
 function fillOwn(r){
   OWN.pa = r.pa || {}; OWN.found = {};
   OWN_FIELDS.forEach(k => {
-    const el = $('o_' + k), has = r[k] !== undefined && r[k] !== null || (k === 'pcp' || k === 'spec') && r[k] === null;
+    const el = $('o_' + k);
     if(r[k] !== undefined){ el.value = r[k] === null ? '' : r[k]; }
     OWN.found[k] = r[k] !== undefined;
   });
@@ -734,6 +846,137 @@ function ownPlan(){
           oon: oonCovered ? {ded: ded * 2, coins: (v('o_ooncoins') ?? Math.min(100, coins * 200)) / 100, billedMult: 1.6} : null};
 }
 
+/* ───────── Receipt tracker ───────── */
+// Payments are kept only in this browser (localStorage). Nothing is sent anywhere.
+const LEDGER_KEY = 'beforecare_payments_v1';
+const THIS_YEAR = new Date().getFullYear();
+let LEDGER = [];
+try{ LEDGER = JSON.parse(localStorage.getItem(LEDGER_KEY) || '[]'); if(!Array.isArray(LEDGER)) LEDGER = []; }catch(e){ LEDGER = []; }
+function saveLedger(){ try{ localStorage.setItem(LEDGER_KEY, JSON.stringify(LEDGER)); }catch(e){} }
+const itemYear = it => +(String(it.date || '').slice(0, 4)) || THIS_YEAR;
+
+const TESS = {
+  script:'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js',
+  workerPath:'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js',
+  corePath:'https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1',
+  langPath:'https://cdn.jsdelivr.net/npm/@tesseract.js-data/eng@1.0.0/4.0.0_best_int',
+};
+let tessReady = null;
+function loadTesseract(){
+  if(window.Tesseract) return Promise.resolve(window.Tesseract);
+  if(!tessReady) tessReady = new Promise((ok, fail) => {
+    const sc = document.createElement('script'); sc.src = TESS.script;
+    sc.onload = () => ok(window.Tesseract);
+    sc.onerror = () => { tessReady = null; fail(new Error('lib')); };
+    document.head.appendChild(sc);
+  });
+  return tessReady;
+}
+async function photoText(blob){
+  const T_ = await loadTesseract();
+  const w = await T_.createWorker('eng', 1, {workerPath:TESS.workerPath, corePath:TESS.corePath, langPath:TESS.langPath});
+  try{ const {data} = await w.recognize(blob); return data.text || ''; }
+  finally{ await w.terminate(); }
+}
+async function pdfLines(buf){
+  const lib = await loadPdfJs();
+  const doc = await lib.getDocument({data: buf}).promise;
+  let out = '';
+  for(let i = 1; i <= Math.min(doc.numPages, 6); i++){
+    const tc = await (await doc.getPage(i)).getTextContent();
+    out += tc.items.map(x => x.str + (x.hasEOL ? '\n' : ' ')).join('') + '\n';
+  }
+  return out;
+}
+// Finds the provider, date, amount paid and what it was for. Returns only what it finds.
+function parseReceipt(raw){
+  const text = raw.replace(/[ \t]+/g, ' ');
+  const flat = text.replace(/\s+/g, ' ');
+  const money = s => +String(s).replace(/[,\s]/g, '').replace(/O/g, '0');
+  const r = {eob: /explanation\s+of\s+benefits|this\s+is\s+not\s+a\s+bill/i.test(flat)};
+  const amt = re => { const m = flat.match(re); return m ? money(m[m.length - 1]) : undefined; };
+  const AMT = '\\$?\\s?([\\d,]+\\.\\d{2})';
+  if(r.eob){
+    r.amount = amt(new RegExp('(?:applied\\s+to|toward)\\s+(?:your\\s+)?deductible[^$\\d]{0,30}' + AMT, 'i'));
+    if(r.amount) r.type = 'ded';
+    else {
+      r.amount = amt(new RegExp('co-?insurance[^$\\d]{0,30}' + AMT, 'i')); if(r.amount) r.type = 'coins';
+      if(!r.amount){ r.amount = amt(new RegExp('co-?pay(?:ment)?[^$\\d]{0,30}' + AMT, 'i')); if(r.amount) r.type = 'copay'; }
+    }
+  } else {
+    r.amount = amt(new RegExp('(?:amount\\s+paid|total\\s+paid|patient\\s+payment|payment\\s+received|you\\s+paid|paid\\s+today|amount\\s+charged)[^$\\d]{0,25}' + AMT, 'i'));
+    if(r.amount === undefined){ const all = [...flat.matchAll(/\$\s?([\d,]+\.\d{2})/g)]; if(all.length) r.amount = money(all[all.length - 1][1]); }
+    const near = flat.toLowerCase();
+    if(/applied\s+to\s+deductible|deductible\s+payment|toward\s+deductible/.test(near)) r.type = 'ded';
+    else if(/co-?insurance/.test(near)) r.type = 'coins';
+    else if(/co-?pay/.test(near)) r.type = 'copay';
+    else if(/deductible/.test(near)) r.type = 'ded';
+  }
+  const d = flat.match(/(?:date\s+of\s+service|service\s+date|visit\s+date|date)\s*:?\s*(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/i) || flat.match(/\b(\d{1,2})\/(\d{1,2})\/(\d{4})\b/);
+  if(d){ let y = +d[3]; if(y < 100) y += 2000; r.date = `${y}-${String(d[1]).padStart(2,'0')}-${String(d[2]).padStart(2,'0')}`; }
+  const pv = flat.match(/(?:provider|billing\s+provider|facility)\s*:\s*([A-Za-z0-9&.,' \-]{3,60}?)(?=\s{2,}|\s+(?:date|patient|account|claim|service|address|phone)\b|$)/i);
+  if(pv) r.prov = pv[1].trim();
+  else {
+    const skip = /receipt|invoice|statement|explanation|not a bill|sample|demo|fictional|page \d/i;
+    const line = text.split(/\n/).map(s => s.trim()).find(s => s.length >= 3 && /[a-z]/i.test(s) && !skip.test(s));
+    if(line) r.prov = line.slice(0, 60);
+  }
+  return r;
+}
+function rcStatus(cls, msg){ $('rcStatus').innerHTML = msg ? `<div class="alert ${cls}">${esc(msg)}</div>` : ''; }
+function typeHint(){ $('rv_typeHint').textContent = t({ded:'thDed', coins:'thCoins', copay:'thCopay', unsure:'thUnsure'}[$('rv_type').value]); }
+function openReview(r){
+  $('rv_prov').value = r.prov || '';
+  $('rv_date').value = r.date || new Date().toISOString().slice(0, 10);
+  $('rv_amt').value = r.amount != null ? r.amount.toFixed(2) : '';
+  $('rv_type').value = r.type || 'unsure';
+  typeHint();
+  $('rcReview').hidden = false;
+  $(r.amount != null ? 'rv_type' : 'rv_amt').focus({preventScroll:false});
+}
+async function readReceipt(file, isPdf){
+  rcStatus('a-blue', isPdf ? t('rcReading') : t('rcReadingPhoto'));
+  let text;
+  try{ text = isPdf ? await pdfLines(await file.arrayBuffer()) : await photoText(file); }
+  catch(e){ rcStatus('a-amber', e && e.message === 'lib' ? t('rcLib') : t('rcFail')); openReview({}); return; }
+  const r = parseReceipt(text);
+  if(r.amount == null) rcStatus('a-amber', t('rcFail'));
+  else rcStatus(r.eob ? 'a-teal' : 'a-blue', r.eob ? t('rcEob') + ' ' + t('rcRead') : t('rcRead'));
+  openReview(r);
+}
+function ledgerTotals(){
+  const cur = LEDGER.filter(it => itemYear(it) === THIS_YEAR);
+  const sum = types => cur.filter(it => types.includes(it.type)).reduce((a, it) => a + it.amt, 0);
+  return {n: cur.length, ded: sum(['ded']), oop: sum(['ded','coins','copay']), unsure: sum(['unsure'])};
+}
+function applyLedger(){
+  const tot = ledgerTotals();
+  if(tot.n){
+    $('dedMet').value = Math.round(tot.ded); $('oopMet').value = Math.round(tot.oop);
+    $('fromRec').textContent = t('fromRec', {n: tot.n}); $('fromRec').hidden = false;
+  } else $('fromRec').hidden = true;
+}
+let delArmed = false;
+function renderLedger(){
+  const box = $('ledger');
+  if(!LEDGER.length){ box.innerHTML = ''; return; }
+  const tyName = {ded:t('tyDed'), coins:t('tyCoins'), copay:t('tyCopay'), unsure:t('tyUnsure')};
+  const fmtD = s => { try{ return new Date(s + 'T12:00:00').toLocaleDateString(LOCALE[L], {month:'short', day:'numeric', year:'numeric'}); }catch(e){ return s; } };
+  const rows = [...LEDGER].sort((a, b) => String(b.date).localeCompare(String(a.date))).map(it => {
+    const old = itemYear(it) !== THIS_YEAR;
+    return `<div class="led-row"${old ? ' style="opacity:.55"' : ''}><div class="led-main"><b>${esc(it.prov || '—')}</b><span>${esc(fmtD(it.date))} · ${esc(tyName[it.type] || '')}${old ? ' · ' + esc(t('ldOld')) : ''}</span></div>` +
+           `<span class="led-amt">${new Intl.NumberFormat(LOCALE[L], {style:'currency', currency:'USD'}).format(it.amt)}</span>` +
+           `<button type="button" class="led-x" data-del="${esc(it.id)}" aria-label="${esc(t('ldDel'))}">×</button></div>`;
+  }).join('');
+  const tot = ledgerTotals();
+  box.innerHTML = `<p class="sub">${esc(t('ldTitle'))}</p><div class="led">${rows}<div class="led-tot">` +
+    `<div><span>${esc(t('ldDed'))}</span><b>${money(tot.ded)}</b></div>` +
+    `<div><span>${esc(t('ldOop'))}</span><b>${money(tot.oop)}</b></div>` +
+    (tot.unsure ? `<div><span>${esc(t('ldUnsure'))}</span><b>${money(tot.unsure)}</b></div>` : '') +
+    `</div></div><button type="button" class="linkbtn" id="delAll">${esc(delArmed ? t('ldDelSure') : t('ldDelAll'))}</button>`;
+}
+function ledgerChanged(){ saveLedger(); delArmed = false; renderLedger(); applyLedger(); render(); }
+
 /* ───────── Drawing the page ───────── */
 function fillSelect(sel, obj, keys){
   const cur = sel.value;
@@ -755,28 +998,42 @@ function planSummary(pk){
     `<b>${t('sumDed')}:</b> ${money(p.ded)}`,
     `<b>${t('sumOop')}:</b> ${money(p.oop)}`,
     `<b>${t('sumCoins')}:</b> ${p.coins*100}%`,
-    p.copay ? `<b>${t('sumCopay')}:</b> ${money(p.copay.pcp)} / ${money(p.copay.spec)}` : esc(t('sumNoCopay')),
+    p.copay ? `<b>${t('sumCopay')}:</b> ${p.copay.pcp != null ? money(p.copay.pcp) : '—'} / ${p.copay.spec != null ? money(p.copay.spec) : '—'}` : esc(t('sumNoCopay')),
   ];
   let extra = '';
   if(p.referral) extra += `<div style="margin-top:4px">• ${esc(t('sumRef'))}</div>`;
   if(!p.oon) extra += `<div>• ${esc(t('sumOonNo'))}</div>`;
-  $('plansum').innerHTML = parts.join(' · ') + extra;
+  $('plansum').innerHTML = (pk === 'own' ? `<b>${esc(t('myPlan'))}</b> · ` : '') + parts.join(' · ') + extra;
 }
 function statusRow(title, level, text){
   const cls = {yes:'p-yes', no:'p-no', maybe:'p-maybe'}[level];
   return `<div class="status"><span class="pill ${cls}">${esc(t(level))}</span><div><h3>${esc(title)}</h3><p>${esc(text)}</p></div></div>`;
 }
 function render(){
-  const sk = $('service').value, pk = $('plan').value;
+  const own = document.querySelector('input[name="src"]:checked').value === 'own';
+  $('samplePane').hidden = own; $('ownPane').hidden = !own;
+  const sk = $('service').value;
+  let pk = $('plan').value;
+  if(own){ PLANS.own = ownPlan(); pk = 'own'; }
   const net = document.querySelector('input[name="net"]:checked').value;
   const dedMet = Math.max(0, +$('dedMet').value || 0);
   const oopMet = Math.max(0, +$('oopMet').value || 0);
   const s = SERVICES[sk], p = PLANS[pk];
+  if(!p){                                     // own plan, numbers not entered yet
+    $('plansum').innerHTML = esc(t('ownNeed'));
+    $('approvals').innerHTML = $('cost').innerHTML = `<p class="hint">${esc(t('ownNeed'))}</p>`;
+    $('script').innerHTML = ''; window._script = '';
+    return;
+  }
   planSummary(pk);
 
   // approvals
-  const paText = {yes:t('paYes'), no:t('paNo'), maybe:t('paMaybe')}[s.pa];
-  let a = statusRow(t('paT'), s.pa, paText);
+  let paLevel = s.pa, paText = {yes:t('paYes'), no:t('paNo'), maybe:t('paMaybe')}[s.pa];
+  if(own && s.pa !== 'no'){                   // trust only what the patient's own summary says
+    if(OWN.pa[sk]){ paLevel = 'yes'; paText = t('paFromDoc'); }
+    else { paLevel = 'maybe'; paText = t('paUnknown'); }
+  }
+  let a = statusRow(t('paT'), paLevel, paText);
   a += statusRow(t('precertT'), s.precert ? 'yes' : 'no', s.precert ? t('precertYes') : t('precertNo'));
   const needRef = p.referral && s.referral;
   a += statusRow(t('refT'), needRef ? 'yes' : 'no', needRef ? t('refYes') : t('refNo'));
@@ -818,13 +1075,13 @@ function render(){
   // questions
   const svcName = T[L].svc[sk];
   const ins = [t('q1', {s: svcName})];
-  if(s.pa !== 'no') ins.push(t('q2'));
+  if(paLevel !== 'no') ins.push(t('q2'));
   if(s.precert) ins.push(t('q2b'));
   ins.push(t('q3'));
   if(needRef) ins.push(t('q6'));
   ins.push(t('q4'), t('q5'));
   const prov = [t('p1')];
-  if(s.pa !== 'no' || s.precert) prov.push(t('p2'));
+  if(paLevel !== 'no' || s.precert) prov.push(t('p2'));
   prov.push(t('p3'), t('p4'));
   window._script = [t('whoIns'), ...ins.map((q,i) => (i+1)+'. '+q), '', t('whoProv'), ...prov.map((q,i) => (i+1)+'. '+q)].join('\n');
   $('script').innerHTML =
@@ -840,9 +1097,24 @@ $('plan').addEventListener('change', () => {          // keep sample numbers sen
   if(+$('dedMet').value > p.ded) $('dedMet').value = p.ded;
   render();
 });
+document.querySelectorAll('input[name="src"]').forEach(el => el.addEventListener('change', render));
+document.querySelectorAll('.own').forEach(el => el.addEventListener('input', () => {
+  const k = el.id.slice(2); if(OWN.found[k] !== undefined){ delete OWN.found[k]; paintTags(); }   // edited by the patient
+  render();
+}));
+$('sbcFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if(!f) return;
+  if(!/pdf$/i.test(f.type) && !/\.pdf$/i.test(f.name)){ upStatus('a-amber', t('upNotPdf')); return; }
+  readPdf(await f.arrayBuffer());
+});
+$('sampleSbc').addEventListener('click', async () => {
+  try{ const res = await fetch('sample-summary-of-benefits.pdf'); if(!res.ok) throw 0; readPdf(await res.arrayBuffer()); }
+  catch(e){ upStatus('a-amber', t('upFail')); }
+});
 $('lang').addEventListener('change', e => {
   L = e.target.value; try{ localStorage.setItem('beforecare_lang', L); }catch(err){}
-  staticText(); render(); $('copied').textContent = ''; $('cbOk').style.display = 'none';
+  staticText(); paintTags(); upStatus('', ''); render(); $('copied').textContent = ''; $('cbOk').style.display = 'none';
 });
 $('copyBtn').addEventListener('click', async () => {
   try{ await navigator.clipboard.writeText(window._script); $('copied').textContent = t('copied'); }
