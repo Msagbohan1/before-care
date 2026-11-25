@@ -671,7 +671,7 @@ function parseSBC(text){
     if(co >= 0) return null;                   // coinsurance: no copay, deductible applies
     return undefined;
   };
-  const pcp = visit(after(/primary\s+care\s+visit\s+to\s+treat[^$%]*?illness/i, 160) || after(/primary\s+care\s+visit(?!s)/i, 180));
+  const pcp = visit(after(/primary\s+care\s+visit/i, 180));
   const spec = visit(after(/specialist\s+visit/i, 140));
   if(pcp !== undefined) r.pcp = pcp;
   if(spec !== undefined) r.spec = spec;
@@ -694,7 +694,7 @@ function parseSBC(text){
 function fillOwn(r){
   OWN.pa = r.pa || {}; OWN.found = {};
   OWN_FIELDS.forEach(k => {
-    const el = $('o_' + k);
+    const el = $('o_' + k), has = r[k] !== undefined && r[k] !== null || (k === 'pcp' || k === 'spec') && r[k] === null;
     if(r[k] !== undefined){ el.value = r[k] === null ? '' : r[k]; }
     OWN.found[k] = r[k] !== undefined;
   });
@@ -755,42 +755,28 @@ function planSummary(pk){
     `<b>${t('sumDed')}:</b> ${money(p.ded)}`,
     `<b>${t('sumOop')}:</b> ${money(p.oop)}`,
     `<b>${t('sumCoins')}:</b> ${p.coins*100}%`,
-    p.copay ? `<b>${t('sumCopay')}:</b> ${p.copay.pcp != null ? money(p.copay.pcp) : '—'} / ${p.copay.spec != null ? money(p.copay.spec) : '—'}` : esc(t('sumNoCopay')),
+    p.copay ? `<b>${t('sumCopay')}:</b> ${money(p.copay.pcp)} / ${money(p.copay.spec)}` : esc(t('sumNoCopay')),
   ];
   let extra = '';
   if(p.referral) extra += `<div style="margin-top:4px">• ${esc(t('sumRef'))}</div>`;
   if(!p.oon) extra += `<div>• ${esc(t('sumOonNo'))}</div>`;
-  $('plansum').innerHTML = (pk === 'own' ? `<b>${esc(t('myPlan'))}</b> · ` : '') + parts.join(' · ') + extra;
+  $('plansum').innerHTML = parts.join(' · ') + extra;
 }
 function statusRow(title, level, text){
   const cls = {yes:'p-yes', no:'p-no', maybe:'p-maybe'}[level];
   return `<div class="status"><span class="pill ${cls}">${esc(t(level))}</span><div><h3>${esc(title)}</h3><p>${esc(text)}</p></div></div>`;
 }
 function render(){
-  const own = document.querySelector('input[name="src"]:checked').value === 'own';
-  $('samplePane').hidden = own; $('ownPane').hidden = !own;
-  const sk = $('service').value;
-  let pk = $('plan').value;
-  if(own){ PLANS.own = ownPlan(); pk = 'own'; }
+  const sk = $('service').value, pk = $('plan').value;
   const net = document.querySelector('input[name="net"]:checked').value;
   const dedMet = Math.max(0, +$('dedMet').value || 0);
   const oopMet = Math.max(0, +$('oopMet').value || 0);
   const s = SERVICES[sk], p = PLANS[pk];
-  if(!p){                                     // own plan, numbers not entered yet
-    $('plansum').innerHTML = esc(t('ownNeed'));
-    $('approvals').innerHTML = $('cost').innerHTML = `<p class="hint">${esc(t('ownNeed'))}</p>`;
-    $('script').innerHTML = ''; window._script = '';
-    return;
-  }
   planSummary(pk);
 
   // approvals
-  let paLevel = s.pa, paText = {yes:t('paYes'), no:t('paNo'), maybe:t('paMaybe')}[s.pa];
-  if(own && s.pa !== 'no'){                   // trust only what the patient's own summary says
-    if(OWN.pa[sk]){ paLevel = 'yes'; paText = t('paFromDoc'); }
-    else { paLevel = 'maybe'; paText = t('paUnknown'); }
-  }
-  let a = statusRow(t('paT'), paLevel, paText);
+  const paText = {yes:t('paYes'), no:t('paNo'), maybe:t('paMaybe')}[s.pa];
+  let a = statusRow(t('paT'), s.pa, paText);
   a += statusRow(t('precertT'), s.precert ? 'yes' : 'no', s.precert ? t('precertYes') : t('precertNo'));
   const needRef = p.referral && s.referral;
   a += statusRow(t('refT'), needRef ? 'yes' : 'no', needRef ? t('refYes') : t('refNo'));
@@ -832,13 +818,13 @@ function render(){
   // questions
   const svcName = T[L].svc[sk];
   const ins = [t('q1', {s: svcName})];
-  if(paLevel !== 'no') ins.push(t('q2'));
+  if(s.pa !== 'no') ins.push(t('q2'));
   if(s.precert) ins.push(t('q2b'));
   ins.push(t('q3'));
   if(needRef) ins.push(t('q6'));
   ins.push(t('q4'), t('q5'));
   const prov = [t('p1')];
-  if(paLevel !== 'no' || s.precert) prov.push(t('p2'));
+  if(s.pa !== 'no' || s.precert) prov.push(t('p2'));
   prov.push(t('p3'), t('p4'));
   window._script = [t('whoIns'), ...ins.map((q,i) => (i+1)+'. '+q), '', t('whoProv'), ...prov.map((q,i) => (i+1)+'. '+q)].join('\n');
   $('script').innerHTML =
@@ -854,24 +840,9 @@ $('plan').addEventListener('change', () => {          // keep sample numbers sen
   if(+$('dedMet').value > p.ded) $('dedMet').value = p.ded;
   render();
 });
-document.querySelectorAll('input[name="src"]').forEach(el => el.addEventListener('change', render));
-document.querySelectorAll('.own').forEach(el => el.addEventListener('input', () => {
-  const k = el.id.slice(2); if(OWN.found[k] !== undefined){ delete OWN.found[k]; paintTags(); }   // edited by the patient
-  render();
-}));
-$('sbcFile').addEventListener('change', async e => {
-  const f = e.target.files[0]; e.target.value = '';
-  if(!f) return;
-  if(!/pdf$/i.test(f.type) && !/\.pdf$/i.test(f.name)){ upStatus('a-amber', t('upNotPdf')); return; }
-  readPdf(await f.arrayBuffer());
-});
-$('sampleSbc').addEventListener('click', async () => {
-  try{ const res = await fetch('sample-summary-of-benefits.pdf'); if(!res.ok) throw 0; readPdf(await res.arrayBuffer()); }
-  catch(e){ upStatus('a-amber', t('upFail')); }
-});
 $('lang').addEventListener('change', e => {
   L = e.target.value; try{ localStorage.setItem('beforecare_lang', L); }catch(err){}
-  staticText(); paintTags(); upStatus('', ''); render(); $('copied').textContent = ''; $('cbOk').style.display = 'none';
+  staticText(); render(); $('copied').textContent = ''; $('cbOk').style.display = 'none';
 });
 $('copyBtn').addEventListener('click', async () => {
   try{ await navigator.clipboard.writeText(window._script); $('copied').textContent = t('copied'); }
