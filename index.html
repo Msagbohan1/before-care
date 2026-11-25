@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Before Care: Know Your Costs</title>
+<style>
+  :root{
+    --ink:#16243a;--ink2:#4d5b6e;--line:#dfe5ec;--soft:#f4f7fa;--bg:#ffffff;
+    --teal:#0f766e;--teal-50:#e6f4f2;--teal-200:#a7dcd5;
+    --amber:#8a5a00;--amber-50:#fff6e0;--amber-200:#f6d58a;
+    --red:#a1301c;--red-50:#fdecea;--red-200:#f3b9ae;
+    --blue:#1d4f91;--blue-50:#eaf1fb;
+    --radius:16px;--shadow:0 1px 2px rgba(22,36,58,.06),0 4px 14px rgba(22,36,58,.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--soft);line-height:1.5;font-size:17px;-webkit-text-size-adjust:100%}
+  .wrap{max-width:640px;margin:0 auto;padding:16px 14px 48px}
+  header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .logo{width:40px;height:40px;border-radius:12px;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .logo svg{width:22px;height:22px}
+  .brand{flex:1;min-width:0}
+  .brand h1{font-size:20px;line-height:1.2}
+  .brand p{font-size:13px;color:var(--ink2)}
+  select,input,textarea,button{font:inherit;color:inherit}
+  .lang{border:1.5px solid var(--line);border-radius:10px;padding:6px 8px;background:#fff;font-size:15px}
+  .demo{background:var(--amber-50);border:1.5px solid var(--amber-200);color:var(--amber);border-radius:12px;padding:10px 12px;font-size:14px;font-weight:600;margin-bottom:14px}
+  .card{background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:14px}
+  h2{font-size:18px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+  .num{width:26px;height:26px;border-radius:50%;background:var(--teal);color:#fff;font-size:14px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0}
+  label{display:block;font-weight:600;font-size:15px;margin:12px 0 5px}
+  .hint{font-size:13px;color:var(--ink2);margin-top:4px}
+  .field{width:100%;border:1.5px solid #c5cfda;border-radius:12px;padding:11px 12px;background:#fff;min-height:48px}
+  .field:focus,.lang:focus,button:focus-visible,summary:focus-visible{outline:3px solid #6aa6e8;outline-offset:2px}
+  .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .seg input{position:absolute;opacity:0;pointer-events:none}
+  .seg label{margin:0;border:1.5px solid #c5cfda;border-radius:12px;padding:10px 4px;text-align:center;font-size:14px;cursor:pointer;min-height:48px;display:flex;align-items:center;justify-content:center;background:#fff}
+  .seg input:checked+label{background:var(--teal-50);border-color:var(--teal);color:var(--teal);font-weight:700}
+  .seg input:focus-visible+label{outline:3px solid #6aa6e8;outline-offset:2px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .money{position:relative}
+  .money span{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink2)}
+  .money input{padding-left:26px}
+  .plansum{background:var(--soft);border-radius:12px;padding:10px 12px;font-size:14px;margin-top:8px}
+  .plansum b{font-weight:700}
+  /* results */
+  .status{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
+  .status:last-child{border-bottom:none}
+  .pill{flex-shrink:0;font-size:13px;font-weight:700;border-radius:999px;padding:3px 10px;margin-top:2px;white-space:nowrap}
+  .p-yes{background:var(--red-50);color:var(--red);border:1px solid var(--red-200)}
+  .p-maybe{background:var(--amber-50);color:var(--amber);border:1px solid var(--amber-200)}
+  .p-no{background:var(--teal-50);color:var(--teal);border:1px solid var(--teal-200)}
+  .status h3{font-size:16px}
+  .status p{font-size:14px;color:var(--ink2)}
+  .big{font-size:40px;font-weight:800;line-height:1.1;letter-spacing:-.5px}
+  .bigsub{font-size:14px;color:var(--ink2);margin-bottom:12px}
+  .rows{border-top:1px solid var(--line)}
+  .row{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
+  .row b{white-space:nowrap}
+  .row.total{font-weight:800;border-bottom:none}
+  .bar{height:14px;border-radius:999px;background:#e9eef3;overflow:hidden;display:flex;margin:10px 0 4px}
+  .bar i{display:block;height:100%}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--ink2)}
+  .legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+  .alert{border-radius:12px;padding:10px 12px;font-size:14px;margin-top:12px}
+  .a-red{background:var(--red-50);border:1.5px solid var(--red-200);color:var(--red)}
+  .a-amber{background:var(--amber-50);border:1.5px solid var(--amber-200);color:var(--amber)}
+  .a-teal{background:var(--teal-50);border:1.5px solid var(--teal-200);color:var(--teal)}
+  .a-blue{background:var(--blue-50);border:1.5px solid #bcd2f0;color:var(--blue)}
+  .dedtxt{font-size:15px;margin-top:4px}
+  /* glossary */
+  details{border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:#fff}
+  summary{cursor:pointer;padding:12px 14px;font-weight:700;list-style:none;display:flex;justify-content:space-between;align-items:center;min-height:48px}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+";font-size:22px;color:var(--teal);font-weight:400}
+  details[open] summary::after{content:"–"}
+  details p{padding:0 14px 12px;font-size:15px;color:var(--ink2)}
+  /* script */
+  ol.script{padding-left:22px}
+  ol.script li{margin:6px 0;font-size:15px}
+  .who{font-size:14px;font-weight:700;color:var(--teal);margin:12px 0 2px;text-transform:uppercase;letter-spacing:.04em}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:48px;padding:10px 18px;border-radius:12px;border:none;background:var(--teal);color:#fff;font-weight:700;cursor:pointer;width:100%;margin-top:12px}
+  .btn.ghost{background:#fff;color:var(--teal);border:1.5px solid var(--teal)}
+  .btn:active{transform:translateY(1px)}
+  ul.tips{padding-left:20px}
+  ul.tips li{margin:7px 0;font-size:15px}
+  .ok{display:none}
+  footer{font-size:13px;color:var(--ink2);text-align:center;margin-top:20px}
+  footer a{color:var(--blue)}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  @media (min-width:560px){.big{font-size:46px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z"/><path d="M12 8.5v6M9 11.5h6"/></svg></div>
+  <div class="brand"><h1 data-t="title"></h1><p data-t="tagline"></p></div>
+  <label class="sr" for="lang">Language</label>
+  <select id="lang" class="lang" aria-label="Language / Idioma / Langue">
+    <option value="en">English</option>
+    <option value="es">Español</option>
+    <option value="fr">Français</option>
+  </select>
+</header>
+
+<div class="demo" role="note" data-t="demo"></div>
+
+<!-- STEP 1 -->
+<section class="card" aria-labelledby="h1">
+  <h2 id="h1"><span class="num">1</span><span data-t="s1"></span></h2>
+  <label for="service" data-t="service"></label>
+  <select id="service" class="field"></select>
+  <label data-t="network" id="netlbl"></label>
+  <div class="seg" role="radiogroup" aria-labelledby="netlbl">
+    <input type="radio" name="net" id="net-in" value="in" checked><label for="net-in" data-t="netIn"></label>
+    <input type="radio" name="net" id="net-out" value="out"><label for="net-out" data-t="netOut"></label>
+    <input type="radio" name="net" id="net-unsure" value="unsure"><label for="net-unsure" data-t="netUnsure"></label>
+  </div>
+  <p class="hint" data-t="netHint"></p>
+</section>
+
+<!-- STEP 2 -->
+<section class="card" aria-labelledby="h2">
+  <h2 id="h2"><span class="num">2</span><span data-t="s2"></span></h2>
+  <label for="plan" data-t="plan"></label>
+  <select id="plan" class="field"></select>
+  <div class="plansum" id="plansum"></div>
+  <div class="two">
+    <div>
+      <label for="dedMet" data-t="dedMet"></label>
+      <div class="money"><span>$</span><input id="dedMet" class="field" type="number" inputmode="numeric" min="0" step="50" value="0"></div>
+    </div>
+    <div>
+      <label for="oopMet" data-t="oopMet"></label>
+      <div class="money"><span>$</span><input id="oopMet" class="field" type="number" inputmode="numeric" min="0" step="50" value="0"></div>
+    </div>
+  </div>
+  <p class="hint" data-t="metHint"></p>
+</section>
+
+<!-- RESULTS -->
+<section class="card" aria-labelledby="h3" aria-live="polite">
+  <h2 id="h3"><span class="num">3</span><span data-t="s3"></span></h2>
+  <div id="approvals"></div>
+</section>
+
+<section class="card" aria-labelledby="h4" aria-live="polite">
+  <h2 id="h4"><span class="num">4</span><span data-t="s4"></span></h2>
+  <div id="cost"></div>
+</section>
+
+<!-- WHAT TO ASK -->
+<section class="card" aria-labelledby="h5">
+  <h2 id="h5"><span class="num">5</span><span data-t="s5"></span></h2>
+  <p class="hint" data-t="askIntro"></p>
+  <div id="script"></div>
+  <button class="btn ghost" id="copyBtn" type="button" data-t="copy"></button>
+  <p class="hint" id="copied" role="status"></p>
+</section>
+
+<!-- CAN'T PAY -->
+<section class="card" aria-labelledby="h6">
+  <h2 id="h6"><span class="num">6</span><span data-t="s6"></span></h2>
+  <ul class="tips" id="tips"></ul>
+</section>
+
+<!-- GLOSSARY -->
+<section class="card" aria-labelledby="h7">
+  <h2 id="h7"><span class="num">7</span><span data-t="s7"></span></h2>
+  <div id="glossary"></div>
+</section>
+
+<!-- CALLBACK -->
+<section class="card" aria-labelledby="h8">
+  <h2 id="h8"><span class="num">8</span><span data-t="s8"></span></h2>
+  <p class="hint" data-t="cbIntro"></p>
+  <form id="cbForm" novalidate>
+    <label for="cbName" data-t="cbName"></label>
+    <input id="cbName" class="field" type="text" autocomplete="off">
+    <label for="cbPhone" data-t="cbPhone"></label>
+    <input id="cbPhone" class="field" type="tel" autocomplete="off">
+    <label for="cbLang" data-t="cbLang"></label>
+    <select id="cbLang" class="field">
+      <option>English</option><option>Español</option><option>Français</option><option data-t="cbOther"></option>
+    </select>
+    <label for="cbTime" data-t="cbTime"></label>
+    <select id="cbTime" class="field">
+      <option data-t="morning"></option><option data-t="afternoon"></option><option data-t="evening"></option>
+    </select>
+    <button class="btn" type="submit" data-t="cbSend"></button>
+  </form>
+  <div class="alert a-teal ok" id="cbOk" role="status" tabindex="-1"></div>
+</section>
+
+<footer>
+  <p data-t="foot1"></p>
+  <p style="margin-top:6px"><a href="https://www.cms.gov/nosurprises/consumers" target="_blank" rel="noopener" data-t="footLink"></a></p>
+</footer>
+</div>
+
+<script>
+/* ───────── Sample data (made up for this demo) ───────── */
+// Prices are sample "allowed amounts": what an in-network provider has agreed to accept.
+const SERVICES = {
+  pcp:      {price:160,   kind:'copay', copayKey:'pcp',  pa:'no'},
+  specialist:{price:280,  kind:'copay', copayKey:'spec', pa:'no', referral:true},
+  lab:      {price:110,   kind:'coins', pa:'no'},
+  mri:      {price:1400,  kind:'coins', pa:'yes', referral:true},
+  ct:       {price:900,   kind:'coins', pa:'yes', referral:true},
+  pt:       {price:140,   kind:'coins', pa:'maybe', referral:true},
+  surgOut:  {price:6500,  kind:'coins', pa:'yes', referral:true},
+  surgIn:   {price:24000, kind:'coins', pa:'yes', precert:true, referral:true},
+  med:      {price:3200,  kind:'coins', pa:'yes', pharmacy:true},
+};
+const PLANS = {
+  ppo:  {ded:2000, oop:6000, coins:.20, copay:{pcp:30, spec:60}, referral:false,
+         oon:{ded:4000, coins:.40, billedMult:1.6}},
+  hmo:  {ded:750,  oop:4500, coins:.10, copay:{pcp:20, spec:40}, referral:true, oon:null},
+  hdhp: {ded:5000, oop:7500, coins:.30, copay:null, referral:false,
+         oon:{ded:10000, coins:.50, billedMult:1.6}},
+};
+
+/* ───────── Words, in three languages ───────── */
+const T = {
+en:{
+  title:'Before Care', tagline:'Know what you need and what you could owe, before your appointment.',
+  demo:'Demo with made-up sample plans and prices. It is not your real coverage. Always confirm with your insurer.',
+  s1:'Your appointment', service:'What is the appointment for?', network:'Is the doctor or facility in your insurance network?',
+  netIn:'In network', netOut:'Out of network', netUnsure:'Not sure',
+  netHint:'Your insurer\'s website, app, or the phone number on your insurance card can tell you.',
+  s2:'Your plan', plan:'Your health plan',
+  dedMet:'Deductible paid so far this year', oopMet:'Total out-of-pocket so far this year',
+  metHint:'Find these in your insurer\'s app or member website, or call the number on your card.',
+  sumDed:'Deductible', sumOop:'Out-of-pocket max', sumCoins:'Coinsurance', sumCopay:'Copays', sumNoCopay:'No copays: you pay toward the deductible first',
+  sumRef:'Needs a referral from your primary care doctor for specialists and most tests', sumOonNo:'Out-of-network care is not covered (except emergencies)',
+  s3:'Approvals you may need',
+  paT:'Prior authorization', precertT:'Precertification (hospital stay)', refT:'Referral',
+  yes:'Required', no:'Not needed', maybe:'Maybe',
+  paYes:'Your doctor\'s office usually asks your insurer for this. Call to confirm it is approved before the appointment. If it is not, the claim can be denied and the bill can come to you.',
+  paNo:'This sample plan does not need approval in advance for this service.',
+  paMaybe:'Often needed after a set number of visits. Ask your insurer how many visits are covered without approval.',
+  precertYes:'A planned hospital stay must be approved in advance. The hospital usually requests it. Ask for the approval number.',
+  precertNo:'Only needed for planned hospital stays.',
+  refYes:'Your plan needs a referral from your primary care doctor first. Ask them to send it before you book.',
+  refNo:'Not needed with this plan.',
+  pharmNote:'Medicines may be covered by your pharmacy benefit, which can have different rules. Ask your insurer which one applies.',
+  s4:'What you could pay',
+  youPay:'Your estimated cost', planPays:'Plan pays about {x}', fullPrice:'Sample price of this service: {x}',
+  rDed:'Toward your deductible', rCoins:'Coinsurance ({p}%)', rCopay:'Copay', rBalance:'Possible extra bill (out of network)', rTotal:'Your total',
+  lgYou:'You pay', lgPlan:'Plan pays',
+  dedMetMsg:'You have already met your deductible this year. You only pay your copay or coinsurance.',
+  dedLeftMsg:'You have {left} left on your deductible. This appointment would use {use} of it.',
+  dedAfter:'After this appointment, {left} would be left.',
+  dedNone:'This service uses a copay, so your deductible does not apply.',
+  oopHit:'You have reached your out-of-pocket maximum. The plan pays 100% of covered care for the rest of the year.',
+  oopCap:'This amount is capped because you are close to your out-of-pocket maximum.',
+  oonHmo:'This plan does not cover out-of-network care. You could owe the full price.',
+  oonPpo:'Out-of-network care costs more: a separate deductible, higher coinsurance, and the provider can bill you for the difference between their price and what the plan pays.',
+  unsure:'This estimate assumes in network. If the provider is out of network, you could owe much more. Check before you go.',
+  s5:'Questions to ask before your appointment',
+  askIntro:'Copy these and use them when you call. Write down the name of the person you speak to and any reference number.',
+  whoIns:'Call your insurer', whoProv:'Call the doctor\'s or hospital\'s office',
+  q1:'Is “{s}” covered under my plan?',
+  q2:'Does it need prior authorization? Has it been approved? What is the reference number?',
+  q2b:'Is a precertification needed for the hospital stay, and has it been approved?',
+  q3:'Is my doctor and the facility in network? Are the other providers involved, like the anesthesiologist or radiologist, also in network?',
+  q4:'How much of my deductible have I met, and how much is left?',
+  q5:'Can you give me a personalized cost estimate? (Most plans must give one online, on paper, or by phone.)',
+  q6:'Do I need a referral first?',
+  p1:'What is the billing code for this service? (You can give it to your insurer for a more exact estimate.)',
+  p2:'Have you sent the prior authorization request? When will we know?',
+  p3:'Do you offer a payment plan or financial assistance?',
+  p4:'If I am uninsured or paying myself, can I get a good faith estimate?',
+  copy:'Copy questions', copied:'Copied. You can paste them into your notes.', copyFail:'Could not copy. Select the text and copy it yourself.',
+  s6:'If the cost is more than you can pay',
+  t1:'Ask the hospital about financial assistance before your appointment. Nonprofit hospitals must have a written financial assistance policy.',
+  t2:'Ask for a payment plan. Many offices offer monthly payments with no interest.',
+  t3:'Ask if a lower-cost in-network option exists, such as an imaging center instead of a hospital.',
+  t4:'If you are uninsured or paying yourself, you have the right to a good faith estimate. If the bill is $400 or more above it, you can dispute it.',
+  t5:'After care, ask for an itemized bill and check it against your insurer\'s Explanation of Benefits.',
+  s7:'What these words mean',
+  g:[
+   ['Prior authorization','Approval from your insurer before you get certain care, like an MRI, surgery, or some medicines. Without it, the insurer can refuse to pay.'],
+   ['Precertification','Approval in advance for a planned hospital stay. Some insurers use this word and "prior authorization" for the same thing.'],
+   ['Referral','A note from your primary care doctor that sends you to a specialist. Some plans, often HMOs, require it.'],
+   ['Deductible','The amount you pay each year for covered care before your plan starts to share the cost.'],
+   ['Copay','A fixed amount you pay for a visit, like $30 for a doctor visit.'],
+   ['Coinsurance','Your share of the cost after you meet your deductible, shown as a percent. With 20% coinsurance on a $1,000 service, you pay $200.'],
+   ['Out-of-pocket maximum','The most you pay in a year for covered in-network care. After that, your plan pays 100%.'],
+   ['In network / out of network','In-network providers have a contract with your insurer and agreed prices. Out-of-network care usually costs you more.'],
+  ],
+  s8:'Want help? Request a callback',
+  cbIntro:'A coverage specialist can call you to explain your costs in your language. Demo only: nothing you type is sent or saved.',
+  cbName:'Your first name', cbPhone:'Phone number', cbLang:'Preferred language', cbOther:'Other', cbTime:'Best time to call',
+  morning:'Morning', afternoon:'Afternoon', evening:'Evening', cbSend:'Request a callback',
+  cbOk:'Thank you{n}. In a real version, a specialist would call you in {l} in the {t}. This demo did not send or save anything.',
+  cbNeed:'Please add a first name and phone number.',
+  foot1:'Before Care is a portfolio demo by Myriam Sagbohan. Sample data only; not medical, legal, or financial advice.',
+  footLink:'Your rights under the No Surprises Act (CMS)',
+  svc:{pcp:'Primary care visit',specialist:'Specialist visit',lab:'Lab tests (blood work)',mri:'MRI scan',ct:'CT scan',pt:'Physical therapy visit',surgOut:'Outpatient surgery (same day)',surgIn:'Surgery with a hospital stay (2 nights)',med:'Specialty medicine (1 month)'},
+  pln:{ppo:'Sample PPO Silver',hmo:'Sample HMO Gold',hdhp:'Sample High-Deductible Bronze'},
+},
+es:{
+  title:'Antes de la Cita', tagline:'Sepa qué necesita y cuánto podría pagar, antes de su cita.',
+  demo:'Demostración con planes y precios de ejemplo inventados. No es su cobertura real. Confirme siempre con su aseguradora.',
+  s1:'Su cita', service:'¿Para qué es la cita?', network:'¿El médico o centro está en la red de su seguro?',
+  netIn:'En la red', netOut:'Fuera de la red', netUnsure:'No sé',
+  netHint:'El sitio web o la aplicación de su aseguradora, o el teléfono de su tarjeta del seguro, se lo pueden decir.',
+  s2:'Su plan', plan:'Su plan de salud',
+  dedMet:'Deducible pagado este año', oopMet:'Total pagado de su bolsillo este año',
+  metHint:'Puede ver estos datos en la aplicación o el sitio web de su aseguradora, o llamando al número de su tarjeta.',
+  sumDed:'Deducible', sumOop:'Máximo de su bolsillo', sumCoins:'Coseguro', sumCopay:'Copagos', sumNoCopay:'Sin copagos: primero paga el deducible',
+  sumRef:'Necesita una referencia de su médico de cabecera para especialistas y la mayoría de las pruebas', sumOonNo:'No cubre atención fuera de la red (excepto emergencias)',
+  s3:'Aprobaciones que puede necesitar',
+  paT:'Autorización previa', precertT:'Precertificación (estancia en el hospital)', refT:'Referencia',
+  yes:'Necesaria', no:'No necesaria', maybe:'Tal vez',
+  paYes:'Normalmente el consultorio de su médico la pide a su aseguradora. Llame para confirmar que está aprobada antes de la cita. Si no lo está, pueden negar el reclamo y la factura puede llegarle a usted.',
+  paNo:'Este plan de ejemplo no necesita aprobación previa para este servicio.',
+  paMaybe:'Suele necesitarse después de cierto número de visitas. Pregunte a su aseguradora cuántas visitas cubre sin aprobación.',
+  precertYes:'Una estancia planificada en el hospital debe aprobarse antes. Normalmente el hospital la solicita. Pida el número de aprobación.',
+  precertNo:'Solo se necesita para estancias planificadas en el hospital.',
+  refYes:'Su plan necesita primero una referencia de su médico de cabecera. Pídale que la envíe antes de hacer la cita.',
+  refNo:'No se necesita con este plan.',
+  pharmNote:'Los medicamentos pueden estar cubiertos por el beneficio de farmacia, que puede tener otras reglas. Pregunte a su aseguradora cuál aplica.',
+  s4:'Lo que podría pagar',
+  youPay:'Su costo estimado', planPays:'El plan paga aproximadamente {x}', fullPrice:'Precio de ejemplo de este servicio: {x}',
+  rDed:'Para su deducible', rCoins:'Coseguro ({p}%)', rCopay:'Copago', rBalance:'Posible factura adicional (fuera de la red)', rTotal:'Su total',
+  lgYou:'Usted paga', lgPlan:'El plan paga',
+  dedMetMsg:'Ya cumplió su deducible este año. Solo paga su copago o coseguro.',
+  dedLeftMsg:'Le quedan {left} de su deducible. Esta cita usaría {use}.',
+  dedAfter:'Después de esta cita, le quedarían {left}.',
+  dedNone:'Este servicio tiene copago, así que su deducible no aplica.',
+  oopHit:'Ya alcanzó su máximo de su bolsillo. El plan paga el 100% de la atención cubierta por el resto del año.',
+  oopCap:'Esta cantidad tiene un límite porque está cerca de su máximo de su bolsillo.',
+  oonHmo:'Este plan no cubre atención fuera de la red. Podría deber el precio completo.',
+  oonPpo:'La atención fuera de la red cuesta más: un deducible aparte, un coseguro más alto, y el proveedor puede cobrarle la diferencia entre su precio y lo que paga el plan.',
+  unsure:'Este cálculo supone que está en la red. Si el proveedor está fuera de la red, podría deber mucho más. Verifíquelo antes de ir.',
+  s5:'Preguntas para hacer antes de su cita',
+  askIntro:'Cópielas y úselas cuando llame. Anote el nombre de la persona con quien habla y cualquier número de referencia.',
+  whoIns:'Llame a su aseguradora', whoProv:'Llame al consultorio o al hospital',
+  q1:'¿Mi plan cubre «{s}»?',
+  q2:'¿Necesita autorización previa? ¿Ya está aprobada? ¿Cuál es el número de referencia?',
+  q2b:'¿Se necesita precertificación para la estancia en el hospital? ¿Ya está aprobada?',
+  q3:'¿Mi médico y el centro están en la red? ¿Los otros proveedores, como el anestesiólogo o el radiólogo, también están en la red?',
+  q4:'¿Cuánto de mi deducible he pagado y cuánto me falta?',
+  q5:'¿Me pueden dar un cálculo personalizado del costo? (La mayoría de los planes deben darlo en línea, en papel o por teléfono.)',
+  q6:'¿Necesito una referencia primero?',
+  p1:'¿Cuál es el código de facturación de este servicio? (Puede dárselo a su aseguradora para un cálculo más exacto.)',
+  p2:'¿Ya enviaron la solicitud de autorización previa? ¿Cuándo sabremos la respuesta?',
+  p3:'¿Ofrecen un plan de pagos o ayuda financiera?',
+  p4:'Si no tengo seguro o pago por mi cuenta, ¿me pueden dar un cálculo de buena fe (good faith estimate)?',
+  copy:'Copiar preguntas', copied:'Copiado. Puede pegarlas en sus notas.', copyFail:'No se pudo copiar. Seleccione el texto y cópielo usted.',
+  s6:'Si el costo es más de lo que puede pagar',
+  t1:'Pregunte al hospital por ayuda financiera antes de su cita. Los hospitales sin fines de lucro deben tener una política escrita de ayuda financiera.',
+  t2:'Pida un plan de pagos. Muchos consultorios ofrecen pagos mensuales sin intereses.',
+  t3:'Pregunte si hay una opción más barata en la red, como un centro de imágenes en lugar de un hospital.',
+  t4:'Si no tiene seguro o paga por su cuenta, tiene derecho a un cálculo de buena fe. Si la factura es $400 o más por encima, puede disputarla.',
+  t5:'Después de la atención, pida una factura detallada y compárela con la Explicación de Beneficios de su aseguradora.',
+  s7:'Qué significan estas palabras',
+  g:[
+   ['Autorización previa','Aprobación de su aseguradora antes de recibir cierta atención, como una resonancia, una cirugía o algunos medicamentos. Sin ella, la aseguradora puede negarse a pagar.'],
+   ['Precertificación','Aprobación por adelantado para una estancia planificada en el hospital. Algunas aseguradoras usan esta palabra y "autorización previa" para lo mismo.'],
+   ['Referencia','Una nota de su médico de cabecera que lo envía a un especialista. Algunos planes, a menudo los HMO, la exigen.'],
+   ['Deducible','Lo que usted paga cada año por la atención cubierta antes de que su plan empiece a compartir el costo.'],
+   ['Copago','Una cantidad fija que paga por una visita, como $30 por una consulta.'],
+   ['Coseguro','Su parte del costo después de cumplir el deducible, en porcentaje. Con un coseguro del 20% en un servicio de $1,000, usted paga $200.'],
+   ['Máximo de su bolsillo','Lo máximo que paga en un año por atención cubierta en la red. Después, su plan paga el 100%.'],
+   ['En la red / fuera de la red','Los proveedores en la red tienen contrato y precios acordados con su aseguradora. La atención fuera de la red suele costarle más.'],
+  ],
+  s8:'¿Quiere ayuda? Pida que le llamen',
+  cbIntro:'Un especialista en cobertura puede llamarle para explicarle sus costos en su idioma. Solo demostración: nada de lo que escriba se envía ni se guarda.',
+  cbName:'Su nombre', cbPhone:'Número de teléfono', cbLang:'Idioma preferido', cbOther:'Otro', cbTime:'Mejor hora para llamar',
+  morning:'Mañana', afternoon:'Tarde', evening:'Noche', cbSend:'Pedir una llamada',
+  cbOk:'Gracias{n}. En una versión real, un especialista le llamaría en {l} por la {t}. Esta demostración no envió ni guardó nada.',
+  cbNeed:'Por favor escriba su nombre y número de teléfono.',
+  foot1:'Antes de la Cita es una demostración de portafolio de Myriam Sagbohan. Solo datos de ejemplo; no es consejo médico, legal ni financiero.',
+  footLink:'Sus derechos bajo la Ley Sin Sorpresas (CMS)',
+  svc:{pcp:'Consulta con médico de cabecera',specialist:'Consulta con especialista',lab:'Análisis de laboratorio (sangre)',mri:'Resonancia magnética',ct:'Tomografía (CT)',pt:'Sesión de fisioterapia',surgOut:'Cirugía ambulatoria (mismo día)',surgIn:'Cirugía con estancia en el hospital (2 noches)',med:'Medicamento especializado (1 mes)'},
+  pln:{ppo:'PPO Plata de ejemplo',hmo:'HMO Oro de ejemplo',hdhp:'Bronce de deducible alto de ejemplo'},
+},
+fr:{
+  title:'Avant les Soins', tagline:'Sachez ce qu\'il vous faut et ce que vous pourriez payer, avant votre rendez-vous.',
+  demo:'Démonstration avec des plans et des prix d\'exemple inventés. Ce n\'est pas votre vraie couverture. Confirmez toujours auprès de votre assureur.',
+  s1:'Votre rendez-vous', service:'Le rendez-vous est pour quoi ?', network:'Le médecin ou l\'établissement fait-il partie du réseau de votre assurance ?',
+  netIn:'Dans le réseau', netOut:'Hors réseau', netUnsure:'Je ne sais pas',
+  netHint:'Le site, l\'application de votre assureur ou le numéro sur votre carte d\'assurance peuvent vous le dire.',
+  s2:'Votre plan', plan:'Votre plan de santé',
+  dedMet:'Franchise payée cette année', oopMet:'Total payé de votre poche cette année',
+  metHint:'Vous trouverez ces montants dans l\'application ou sur le site de votre assureur, ou en appelant le numéro sur votre carte.',
+  sumDed:'Franchise', sumOop:'Plafond annuel', sumCoins:'Coassurance', sumCopay:'Quotes-parts', sumNoCopay:'Pas de quote-part : vous payez d\'abord la franchise',
+  sumRef:'Une recommandation de votre médecin traitant est nécessaire pour les spécialistes et la plupart des examens', sumOonNo:'Les soins hors réseau ne sont pas couverts (sauf urgences)',
+  s3:'Les autorisations dont vous pourriez avoir besoin',
+  paT:'Autorisation préalable', precertT:'Précertification (séjour à l\'hôpital)', refT:'Recommandation',
+  yes:'Obligatoire', no:'Pas nécessaire', maybe:'Peut-être',
+  paYes:'Le cabinet de votre médecin la demande généralement à votre assureur. Appelez pour confirmer qu\'elle est approuvée avant le rendez-vous. Sinon, la demande de remboursement peut être refusée et la facture peut vous être adressée.',
+  paNo:'Ce plan d\'exemple ne demande pas d\'autorisation préalable pour ce service.',
+  paMaybe:'Souvent nécessaire après un certain nombre de séances. Demandez à votre assureur combien de séances sont couvertes sans autorisation.',
+  precertYes:'Un séjour prévu à l\'hôpital doit être approuvé à l\'avance. L\'hôpital le demande généralement. Demandez le numéro d\'approbation.',
+  precertNo:'Nécessaire seulement pour les séjours prévus à l\'hôpital.',
+  refYes:'Votre plan exige d\'abord une recommandation de votre médecin traitant. Demandez-lui de l\'envoyer avant de prendre rendez-vous.',
+  refNo:'Pas nécessaire avec ce plan.',
+  pharmNote:'Les médicaments peuvent relever de la garantie pharmacie, qui peut avoir d\'autres règles. Demandez à votre assureur laquelle s\'applique.',
+  s4:'Ce que vous pourriez payer',
+  youPay:'Votre coût estimé', planPays:'Le plan paie environ {x}', fullPrice:'Prix d\'exemple de ce service : {x}',
+  rDed:'Pour votre franchise', rCoins:'Coassurance ({p} %)', rCopay:'Quote-part', rBalance:'Facture supplémentaire possible (hors réseau)', rTotal:'Votre total',
+  lgYou:'Vous payez', lgPlan:'Le plan paie',
+  dedMetMsg:'Vous avez déjà atteint votre franchise cette année. Vous payez seulement votre quote-part ou coassurance.',
+  dedLeftMsg:'Il vous reste {left} de franchise. Ce rendez-vous en utiliserait {use}.',
+  dedAfter:'Après ce rendez-vous, il resterait {left}.',
+  dedNone:'Ce service a une quote-part fixe, donc la franchise ne s\'applique pas.',
+  oopHit:'Vous avez atteint votre plafond annuel. Le plan paie 100 % des soins couverts pour le reste de l\'année.',
+  oopCap:'Ce montant est plafonné car vous êtes proche de votre plafond annuel.',
+  oonHmo:'Ce plan ne couvre pas les soins hors réseau. Vous pourriez devoir le prix complet.',
+  oonPpo:'Les soins hors réseau coûtent plus cher : une franchise séparée, une coassurance plus élevée, et le prestataire peut vous facturer la différence entre son prix et ce que paie le plan.',
+  unsure:'Cette estimation suppose que le prestataire est dans le réseau. S\'il est hors réseau, vous pourriez devoir beaucoup plus. Vérifiez avant d\'y aller.',
+  s5:'Questions à poser avant votre rendez-vous',
+  askIntro:'Copiez-les et utilisez-les quand vous appelez. Notez le nom de la personne et tout numéro de référence.',
+  whoIns:'Appelez votre assureur', whoProv:'Appelez le cabinet ou l\'hôpital',
+  q1:'Mon plan couvre-t-il « {s} » ?',
+  q2:'Faut-il une autorisation préalable ? Est-elle approuvée ? Quel est le numéro de référence ?',
+  q2b:'Faut-il une précertification pour le séjour à l\'hôpital ? Est-elle approuvée ?',
+  q3:'Mon médecin et l\'établissement sont-ils dans le réseau ? Les autres prestataires, comme l\'anesthésiste ou le radiologue, le sont-ils aussi ?',
+  q4:'Combien de ma franchise ai-je payé, et combien reste-t-il ?',
+  q5:'Pouvez-vous me donner une estimation personnalisée du coût ? (La plupart des plans doivent la fournir en ligne, sur papier ou par téléphone.)',
+  q6:'Ai-je besoin d\'une recommandation d\'abord ?',
+  p1:'Quel est le code de facturation de ce service ? (Vous pouvez le donner à votre assureur pour une estimation plus précise.)',
+  p2:'Avez-vous envoyé la demande d\'autorisation préalable ? Quand aurons-nous la réponse ?',
+  p3:'Proposez-vous un plan de paiement ou une aide financière ?',
+  p4:'Si je n\'ai pas d\'assurance ou si je paie moi-même, puis-je obtenir une estimation de bonne foi (good faith estimate) ?',
+  copy:'Copier les questions', copied:'Copié. Vous pouvez les coller dans vos notes.', copyFail:'Copie impossible. Sélectionnez le texte et copiez-le vous-même.',
+  s6:'Si le coût dépasse ce que vous pouvez payer',
+  t1:'Demandez à l\'hôpital une aide financière avant votre rendez-vous. Les hôpitaux à but non lucratif doivent avoir une politique écrite d\'aide financière.',
+  t2:'Demandez un plan de paiement. Beaucoup de cabinets proposent des paiements mensuels sans intérêts.',
+  t3:'Demandez s\'il existe une option moins chère dans le réseau, comme un centre d\'imagerie plutôt qu\'un hôpital.',
+  t4:'Si vous n\'avez pas d\'assurance ou payez vous-même, vous avez droit à une estimation de bonne foi. Si la facture la dépasse de 400 $ ou plus, vous pouvez la contester.',
+  t5:'Après les soins, demandez une facture détaillée et comparez-la au relevé de prestations (Explanation of Benefits) de votre assureur.',
+  s7:'Ce que veulent dire ces mots',
+  g:[
+   ['Autorisation préalable','L\'accord de votre assureur avant certains soins, comme une IRM, une chirurgie ou certains médicaments. Sans elle, l\'assureur peut refuser de payer.'],
+   ['Précertification','Un accord à l\'avance pour un séjour prévu à l\'hôpital. Certains assureurs utilisent ce mot et « autorisation préalable » pour la même chose.'],
+   ['Recommandation','Une note de votre médecin traitant qui vous envoie vers un spécialiste. Certains plans, souvent les HMO, l\'exigent.'],
+   ['Franchise','Le montant que vous payez chaque année pour les soins couverts avant que votre plan partage le coût.'],
+   ['Quote-part (copay)','Un montant fixe payé pour une visite, par exemple 30 $ pour une consultation.'],
+   ['Coassurance','Votre part du coût après la franchise, en pourcentage. Avec 20 % sur un service de 1 000 $, vous payez 200 $.'],
+   ['Plafond annuel','Le maximum que vous payez par an pour les soins couverts dans le réseau. Ensuite, votre plan paie 100 %.'],
+   ['Dans le réseau / hors réseau','Les prestataires du réseau ont un contrat et des prix convenus avec votre assureur. Les soins hors réseau vous coûtent généralement plus cher.'],
+  ],
+  s8:'Besoin d\'aide ? Demandez un rappel',
+  cbIntro:'Un spécialiste de la couverture peut vous appeler pour expliquer vos coûts dans votre langue. Démonstration seulement : rien de ce que vous écrivez n\'est envoyé ni enregistré.',
+  cbName:'Votre prénom', cbPhone:'Numéro de téléphone', cbLang:'Langue préférée', cbOther:'Autre', cbTime:'Meilleur moment pour appeler',
+  morning:'Matin', afternoon:'Après-midi', evening:'Soir', cbSend:'Demander un rappel',
+  cbOk:'Merci{n}. Dans une vraie version, un spécialiste vous appellerait en {l}, le {t}. Cette démonstration n\'a rien envoyé ni enregistré.',
+  cbNeed:'Veuillez indiquer un prénom et un numéro de téléphone.',
+  foot1:'Avant les Soins est une démonstration de portfolio de Myriam Sagbohan. Données d\'exemple seulement ; ce n\'est pas un conseil médical, juridique ou financier.',
+  footLink:'Vos droits selon le No Surprises Act (CMS)',
+  svc:{pcp:'Consultation chez le médecin traitant',specialist:'Consultation chez un spécialiste',lab:'Analyses de laboratoire (sang)',mri:'IRM',ct:'Scanner (CT)',pt:'Séance de kinésithérapie',surgOut:'Chirurgie ambulatoire (même jour)',surgIn:'Chirurgie avec séjour à l\'hôpital (2 nuits)',med:'Médicament de spécialité (1 mois)'},
+  pln:{ppo:'PPO Argent (exemple)',hmo:'HMO Or (exemple)',hdhp:'Bronze à franchise élevée (exemple)'},
+}};
+
+/* ───────── Helpers ───────── */
+let L = 'en';
+try{ const s = localStorage.getItem('beforecare_lang'); if(T[s]) L = s; }catch(e){}
+const $ = id => document.getElementById(id);
+const t = (k, vars) => { let s = T[L][k] ?? T.en[k] ?? k; if(vars) for(const v in vars) s = s.split('{'+v+'}').join(vars[v]); return s; };
+const LOCALE = {en:'en-US', es:'es-US', fr:'fr-CA'};
+const money = n => new Intl.NumberFormat(LOCALE[L], {style:'currency', currency:'USD', maximumFractionDigits:0}).format(Math.round(n));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ───────── The cost calculation ───────── */
+// Returns what the patient would pay for one service under one sample plan.
+function estimate(svcKey, planKey, net, dedMet, oopMet){
+  const s = SERVICES[svcKey], p = PLANS[planKey];
+  const r = {price:s.price, ded:0, coins:0, copay:0, balance:0, total:0, plan:0, coinsPct:0,
+             dedApplies:true, dedLeftBefore:0, dedLeftAfter:0, capped:false, oopReached:false, notCovered:false, oon:false};
+  const useOon = net === 'out';
+  if(useOon && !p.oon){                       // HMO: out-of-network not covered
+    r.notCovered = true; r.oon = true; r.total = s.price; r.balance = 0; r.plan = 0;
+    r.dedApplies = false; return r;
+  }
+  if(useOon){                                 // PPO / HDHP out of network
+    r.oon = true;
+    const billed = s.price * p.oon.billedMult;
+    r.dedLeftBefore = p.oon.ded;               // assume nothing met out of network yet
+    r.ded = Math.min(s.price, r.dedLeftBefore);
+    r.coins = (s.price - r.ded) * p.oon.coins;
+    r.coinsPct = p.oon.coins * 100;
+    r.balance = billed - s.price;              // provider may bill the difference
+    r.dedLeftAfter = r.dedLeftBefore - r.ded;
+    r.total = r.ded + r.coins + r.balance;
+    r.plan = s.price - r.ded - r.coins;
+    return r;                                   // out-of-network costs do not count toward the in-network max
+  }
+  const dedLeft = Math.max(0, p.ded - dedMet);
+  const oopLeft = Math.max(0, p.oop - Math.max(oopMet, dedMet));
+  r.dedLeftBefore = dedLeft;
+  if(oopLeft === 0){ r.oopReached = true; r.plan = s.price; r.dedLeftAfter = dedLeft; return r; }
+  if(s.kind === 'copay' && p.copay){          // fixed copay, deductible does not apply
+    r.dedApplies = false;
+    r.copay = Math.min(p.copay[s.copayKey], s.price);
+  } else {                                    // deductible first, then coinsurance
+    r.ded = Math.min(s.price, dedLeft);
+    r.coins = (s.price - r.ded) * p.coins;
+    r.coinsPct = p.coins * 100;
+  }
+  let total = r.ded + r.coins + r.copay;
+  if(total > oopLeft){                        // never more than what is left of the yearly max
+    let over = total - oopLeft;               // trim coinsurance first, then copay, then deductible
+    const cut = (k) => { const d = Math.min(r[k], over); r[k] -= d; over -= d; };
+    cut('coins'); cut('copay'); cut('ded');
+    total = oopLeft; r.capped = true;
+  }
+  r.total = total;
+  r.plan = s.price - total;
+  r.dedLeftAfter = Math.max(0, dedLeft - r.ded);
+  return r;
+}
+
+/* ───────── Drawing the page ───────── */
+function fillSelect(sel, obj, keys){
+  const cur = sel.value;
+  sel.innerHTML = keys.map(k => `<option value="${k}">${esc(obj[k])}</option>`).join('');
+  if(cur && keys.includes(cur)) sel.value = cur;
+}
+function staticText(){
+  document.documentElement.lang = L;
+  document.title = t('title') + ' · ' + t('tagline');
+  document.querySelectorAll('[data-t]').forEach(el => { el.textContent = t(el.dataset.t); });
+  fillSelect($('service'), T[L].svc, Object.keys(SERVICES));
+  fillSelect($('plan'), T[L].pln, Object.keys(PLANS));
+  $('glossary').innerHTML = T[L].g.map(([w,d]) => `<details><summary>${esc(w)}</summary><p>${esc(d)}</p></details>`).join('');
+  $('tips').innerHTML = ['t1','t2','t3','t4','t5'].map(k => `<li>${esc(t(k))}</li>`).join('');
+}
+function planSummary(pk){
+  const p = PLANS[pk];
+  const parts = [
+    `<b>${t('sumDed')}:</b> ${money(p.ded)}`,
+    `<b>${t('sumOop')}:</b> ${money(p.oop)}`,
+    `<b>${t('sumCoins')}:</b> ${p.coins*100}%`,
+    p.copay ? `<b>${t('sumCopay')}:</b> ${money(p.copay.pcp)} / ${money(p.copay.spec)}` : esc(t('sumNoCopay')),
+  ];
+  let extra = '';
+  if(p.referral) extra += `<div style="margin-top:4px">• ${esc(t('sumRef'))}</div>`;
+  if(!p.oon) extra += `<div>• ${esc(t('sumOonNo'))}</div>`;
+  $('plansum').innerHTML = parts.join(' · ') + extra;
+}
+function statusRow(title, level, text){
+  const cls = {yes:'p-yes', no:'p-no', maybe:'p-maybe'}[level];
+  return `<div class="status"><span class="pill ${cls}">${esc(t(level))}</span><div><h3>${esc(title)}</h3><p>${esc(text)}</p></div></div>`;
+}
+function render(){
+  const sk = $('service').value, pk = $('plan').value;
+  const net = document.querySelector('input[name="net"]:checked').value;
+  const dedMet = Math.max(0, +$('dedMet').value || 0);
+  const oopMet = Math.max(0, +$('oopMet').value || 0);
+  const s = SERVICES[sk], p = PLANS[pk];
+  planSummary(pk);
+
+  // approvals
+  const paText = {yes:t('paYes'), no:t('paNo'), maybe:t('paMaybe')}[s.pa];
+  let a = statusRow(t('paT'), s.pa, paText);
+  a += statusRow(t('precertT'), s.precert ? 'yes' : 'no', s.precert ? t('precertYes') : t('precertNo'));
+  const needRef = p.referral && s.referral;
+  a += statusRow(t('refT'), needRef ? 'yes' : 'no', needRef ? t('refYes') : t('refNo'));
+  if(s.pharmacy) a += `<div class="alert a-blue">${esc(t('pharmNote'))}</div>`;
+  $('approvals').innerHTML = a;
+
+  // cost
+  const r = estimate(sk, pk, net, dedMet, oopMet);
+  const youPct = r.price ? Math.min(100, (r.total - r.balance) / r.price * 100) : 0;
+  let c = `<div class="bigsub">${esc(t('youPay'))}</div><div class="big">${money(r.total)}</div>`;
+  c += `<div class="bigsub">${esc(t('fullPrice', {x: money(r.price)}))} · ${esc(t('planPays', {x: money(r.plan)}))}</div>`;
+  c += `<div class="bar" aria-hidden="true"><i style="width:${youPct}%;background:#d9822b"></i><i style="width:${100-youPct}%;background:#0f766e"></i></div>`;
+  c += `<div class="legend"><span style="--c:#d9822b">${esc(t('lgYou'))}</span><span style="--c:#0f766e">${esc(t('lgPlan'))}</span></div>`;
+  c += `<div class="rows" style="margin-top:12px">`;
+  if(r.copay) c += `<div class="row"><span>${esc(t('rCopay'))}</span><b>${money(r.copay)}</b></div>`;
+  if(r.dedApplies && !r.notCovered) c += `<div class="row"><span>${esc(t('rDed'))}</span><b>${money(r.ded)}</b></div>`;
+  if(r.coinsPct) c += `<div class="row"><span>${esc(t('rCoins', {p: r.coinsPct}))}</span><b>${money(r.coins)}</b></div>`;
+  if(r.balance) c += `<div class="row"><span>${esc(t('rBalance'))}</span><b>${money(r.balance)}</b></div>`;
+  c += `<div class="row total"><span>${esc(t('rTotal'))}</span><b>${money(r.total)}</b></div></div>`;
+
+  // deductible status (in network only)
+  if(!r.oon){
+    if(r.oopReached) c += `<div class="alert a-teal">${esc(t('oopHit'))}</div>`;
+    else if(!r.dedApplies) c += `<div class="alert a-teal">${esc(t('dedNone'))}${r.dedLeftBefore===0?' '+esc(t('dedMetMsg')):''}</div>`;
+    else if(r.dedLeftBefore === 0) c += `<div class="alert a-teal">${esc(t('dedMetMsg'))}</div>`;
+    else {
+      const used = Math.min(p.ded, dedMet);
+      c += `<div style="margin-top:12px"><div class="dedtxt">${esc(t('dedLeftMsg', {left: money(r.dedLeftBefore), use: money(r.ded)}))} ${esc(t('dedAfter', {left: money(r.dedLeftAfter)}))}</div>`;
+      const pctMet = used / p.ded * 100, pctNow = r.ded / p.ded * 100;
+      c += `<div class="bar" aria-hidden="true"><i style="width:${pctMet}%;background:#0f766e"></i><i style="width:${pctNow}%;background:#d9822b"></i></div></div>`;
+    }
+    if(r.capped) c += `<div class="alert a-teal">${esc(t('oopCap'))}</div>`;
+    if(net === 'unsure') c += `<div class="alert a-amber">${esc(t('unsure'))}</div>`;
+  } else {
+    c += `<div class="alert a-red">${esc(r.notCovered ? t('oonHmo') : t('oonPpo'))}</div>`;
+  }
+  $('cost').innerHTML = c;
+
+  // questions
+  const svcName = T[L].svc[sk];
+  const ins = [t('q1', {s: svcName})];
+  if(s.pa !== 'no') ins.push(t('q2'));
+  if(s.precert) ins.push(t('q2b'));
+  ins.push(t('q3'));
+  if(needRef) ins.push(t('q6'));
+  ins.push(t('q4'), t('q5'));
+  const prov = [t('p1')];
+  if(s.pa !== 'no' || s.precert) prov.push(t('p2'));
+  prov.push(t('p3'), t('p4'));
+  window._script = [t('whoIns'), ...ins.map((q,i) => (i+1)+'. '+q), '', t('whoProv'), ...prov.map((q,i) => (i+1)+'. '+q)].join('\n');
+  $('script').innerHTML =
+    `<div class="who">${esc(t('whoIns'))}</div><ol class="script">${ins.map(q => `<li>${esc(q)}</li>`).join('')}</ol>` +
+    `<div class="who">${esc(t('whoProv'))}</div><ol class="script">${prov.map(q => `<li>${esc(q)}</li>`).join('')}</ol>`;
+}
+
+/* ───────── Events ───────── */
+['service','plan','dedMet','oopMet'].forEach(id => $(id).addEventListener('input', render));
+document.querySelectorAll('input[name="net"]').forEach(el => el.addEventListener('change', render));
+$('plan').addEventListener('change', () => {          // keep sample numbers sensible for the new plan
+  const p = PLANS[$('plan').value];
+  if(+$('dedMet').value > p.ded) $('dedMet').value = p.ded;
+  render();
+});
+$('lang').addEventListener('change', e => {
+  L = e.target.value; try{ localStorage.setItem('beforecare_lang', L); }catch(err){}
+  staticText(); render(); $('copied').textContent = ''; $('cbOk').style.display = 'none';
+});
+$('copyBtn').addEventListener('click', async () => {
+  try{ await navigator.clipboard.writeText(window._script); $('copied').textContent = t('copied'); }
+  catch(e){ $('copied').textContent = t('copyFail'); }
+});
+$('cbForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const name = $('cbName').value.trim(), phone = $('cbPhone').value.trim(), ok = $('cbOk');
+  if(!name || !phone){ ok.className = 'alert a-amber'; ok.textContent = t('cbNeed'); ok.style.display = 'block'; return; }
+  ok.className = 'alert a-teal';
+  ok.textContent = t('cbOk', {n: ', ' + name, l: $('cbLang').value, t: $('cbTime').value.toLowerCase()});
+  ok.style.display = 'block'; ok.focus();
+  $('cbForm').reset();                                 // nothing is kept
+});
+
+$('lang').value = L;
+staticText();
+$('plan').value = 'ppo'; $('service').value = 'mri'; $('dedMet').value = 800; $('oopMet').value = 950;
+render();
+</script>
+</body>
+</html>
