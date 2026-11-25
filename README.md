@@ -15,6 +15,19 @@ Before Care is a phone-friendly web app for patients. Once an appointment is set
 
 Available in **English, Spanish, and French**.
 
+## Use your own plan
+
+Patients can choose **Try a sample plan** or **Use my own plan**:
+
+- **Upload your Summary of Benefits and Coverage (SBC).** Every health plan gives members this standard PDF. The app reads it and fills in the deductible, out-of-pocket limit, copays, coinsurance, referral rule, out-of-network coverage, and which services the summary says need prior authorization or precertification. Each number is marked "Found in your document" or "Please check" so the patient can confirm or fix it.
+- **Type your numbers** from an insurance card or the summary, if there is no PDF or it is a scanned image.
+
+**Privacy:** the PDF is read in the patient's own browser with [PDF.js](https://mozilla.github.io/pdf.js/). It is never uploaded, sent, or saved, and the numbers are not stored after the page closes.
+
+Try it with `sample-summary-of-benefits.pdf`, a fictional plan laid out like the standard SBC template.
+
+Limits: the summary does not show how much of the deductible has been paid this year (the patient enters that from their insurer's app), service prices are still samples, and the summary does not list prior-authorization rules for every service. When it doesn't say, the app tells the patient to ask.
+
 > **Demo only.** All plans and prices are made-up samples. This is not real coverage information and not medical, legal, or financial advice.
 
 ## Why
@@ -43,14 +56,14 @@ Out of network: the HMO sample covers nothing; the other samples use a separate 
 
 ## What a real version would need
 
-- the patient's actual plan, benefits, and year-to-date deductible from the insurer
-- the insurer's real prior-authorization rules and negotiated prices, through the cost-estimate tools health plans must offer
+- the patient's year-to-date deductible and claims from the insurer, for example through the Patient Access API that many insurers must offer to apps patients choose
+- the insurer's real prior-authorization rules (prior-authorization information is being added to that API starting in 2027) and negotiated prices, through the cost-estimate tools health plans must offer
 - a secure, private way to handle patient information
 - testing with patients, including patients with limited English or health literacy
 
 ## Run it
 
-It is one file, `index.html`. Open it in any browser, or publish it with GitHub Pages (Settings → Pages → Deploy from a branch → `main` / root).
+The app is `index.html` plus `sample-summary-of-benefits.pdf`. Publish with GitHub Pages (Settings → Pages → Deploy from a branch → `main` / root). The upload feature loads PDF.js from cdnjs, so it needs an internet connection; the sample-summary button needs the page to be served (GitHub Pages or a local server), not opened as a file.
 
 ## Author
 

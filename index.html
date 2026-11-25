@@ -42,6 +42,18 @@
   .money span{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--ink2)}
   .money input{padding-left:26px}
   .plansum{background:var(--soft);border-radius:12px;padding:10px 12px;font-size:14px;margin-top:8px}
+  .seg2{grid-template-columns:1fr 1fr;margin-bottom:4px}
+  .upbox{border:1.5px dashed var(--teal-200);background:var(--teal-50);border-radius:14px;padding:14px;margin-top:12px}
+  .upt{font-weight:700;font-size:16px}
+  label.btn{display:flex;margin-bottom:0}
+  .sub{font-weight:700;font-size:16px;margin-top:16px}
+  .money.pct span{left:auto;right:12px}
+  .money.pct input{padding-left:12px;padding-right:28px}
+  .tag{display:inline-block;font-size:12px;font-weight:700;margin-top:4px;border-radius:999px;padding:1px 8px}
+  .tag:empty{display:none}
+  .tag.found{background:var(--teal-50);color:var(--teal)}
+  .tag.check{background:var(--amber-50);color:var(--amber)}
+  [hidden]{display:none!important}
   .plansum b{font-weight:700}
   /* results */
   .status{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
@@ -124,8 +136,42 @@
 <!-- STEP 2 -->
 <section class="card" aria-labelledby="h2">
   <h2 id="h2"><span class="num">2</span><span data-t="s2"></span></h2>
-  <label for="plan" data-t="plan"></label>
-  <select id="plan" class="field"></select>
+  <div class="seg seg2" role="radiogroup" aria-label="Plan source">
+    <input type="radio" name="src" id="src-sample" value="sample" checked><label for="src-sample" data-t="srcSample"></label>
+    <input type="radio" name="src" id="src-own" value="own"><label for="src-own" data-t="srcOwn"></label>
+  </div>
+
+  <div id="samplePane">
+    <label for="plan" data-t="plan"></label>
+    <select id="plan" class="field"></select>
+  </div>
+
+  <div id="ownPane" hidden>
+    <div class="upbox">
+      <p class="upt" data-t="upTitle"></p>
+      <p class="hint" data-t="upHint"></p>
+      <label class="btn" for="sbcFile" style="margin-top:10px"><span data-t="upBtn"></span></label>
+      <input type="file" id="sbcFile" accept="application/pdf,.pdf" class="sr">
+      <button type="button" class="btn ghost" id="sampleSbc" data-t="upSample"></button>
+      <p class="hint" data-t="upPrivacy" style="margin-top:8px"></p>
+      <div id="upStatus" role="status" aria-live="polite"></div>
+    </div>
+
+    <p class="sub" data-t="ownTitle"></p>
+    <p class="hint" data-t="ownHint"></p>
+    <div class="two">
+      <div><label for="o_ded" data-t="oDed"></label><div class="money"><span>$</span><input id="o_ded" class="field own" type="number" inputmode="numeric" min="0"></div><span class="tag" id="tg_ded"></span></div>
+      <div><label for="o_oop" data-t="oOop"></label><div class="money"><span>$</span><input id="o_oop" class="field own" type="number" inputmode="numeric" min="0"></div><span class="tag" id="tg_oop"></span></div>
+      <div><label for="o_pcp" data-t="oPcp"></label><div class="money"><span>$</span><input id="o_pcp" class="field own" type="number" inputmode="numeric" min="0"></div><span class="tag" id="tg_pcp"></span></div>
+      <div><label for="o_spec" data-t="oSpec"></label><div class="money"><span>$</span><input id="o_spec" class="field own" type="number" inputmode="numeric" min="0"></div><span class="tag" id="tg_spec"></span></div>
+      <div><label for="o_coins" data-t="oCoins"></label><div class="money pct"><input id="o_coins" class="field own" type="number" inputmode="numeric" min="0" max="100"><span>%</span></div><span class="tag" id="tg_coins"></span></div>
+      <div><label for="o_ref" data-t="oRef"></label><select id="o_ref" class="field own"><option value="no" data-t="optNo"></option><option value="yes" data-t="optYes"></option></select><span class="tag" id="tg_ref"></span></div>
+      <div><label for="o_oon" data-t="oOon"></label><select id="o_oon" class="field own"><option value="yes" data-t="optCovered"></option><option value="no" data-t="optNotCovered"></option></select><span class="tag" id="tg_oon"></span></div>
+      <div><label for="o_ooncoins" data-t="oOonCoins"></label><div class="money pct"><input id="o_ooncoins" class="field own" type="number" inputmode="numeric" min="0" max="100"><span>%</span></div><span class="tag" id="tg_ooncoins"></span></div>
+    </div>
+    <p class="hint" data-t="copayHint"></p>
+  </div>
+
   <div class="plansum" id="plansum"></div>
   <div class="two">
     <div>
@@ -459,6 +505,67 @@ fr:{
   pln:{ppo:'PPO Argent (exemple)',hmo:'HMO Or (exemple)',hdhp:'Bronze à franchise élevée (exemple)'},
 }};
 
+/* Words for "Use my own plan" */
+const T2 = {
+en:{
+  srcSample:'Try a sample plan', srcOwn:'Use my own plan',
+  upTitle:'Upload your Summary of Benefits and Coverage', upHint:'Every health plan gives members this standard document (often called the "SBC"). Find it in your insurer\'s app or website, or ask your employer. It is a PDF.',
+  upBtn:'Choose PDF', upSample:'Try with a sample summary',
+  upPrivacy:'Your file is read on this device only. It is never uploaded, sent, or saved.',
+  upReading:'Reading your document…', upDone:'Found {n} of 8 items. Check each number below; fix anything that looks wrong.',
+  upPartial:'Some items were not found. They are marked "Please check". Type them in from your document.',
+  upFail:'Could not read this PDF. It may be a scanned image. Type the numbers in below instead.',
+  upNotPdf:'Please choose a PDF file.', upLib:'The PDF reader could not load. Check your internet connection, or type the numbers in below.',
+  ownTitle:'Your plan\'s numbers', ownHint:'Filled in from your document, or type them from your insurance card or summary.',
+  oDed:'Deductible (individual, in network)', oOop:'Out-of-pocket max (individual, in network)', oPcp:'Primary care copay', oSpec:'Specialist copay',
+  oCoins:'Coinsurance (in network)', oRef:'Referral needed for specialists?', oOon:'Out-of-network care', oOonCoins:'Coinsurance (out of network)',
+  optNo:'No', optYes:'Yes', optCovered:'Covered (costs more)', optNotCovered:'Not covered',
+  copayHint:'Leave a copay empty if your plan has no copay for that visit (common on high-deductible plans).',
+  found:'Found in your document', check:'Please check', myPlan:'Your plan',
+  paUnknown:'Your summary does not say. Ask your insurer before the appointment whether this needs prior authorization.',
+  paFromDoc:'Your summary says this needs approval in advance. Your doctor\'s office usually requests it. Confirm it is approved before the appointment.',
+  ownNeed:'Enter at least your deductible and out-of-pocket max to see an estimate.',
+},
+es:{
+  srcSample:'Probar un plan de ejemplo', srcOwn:'Usar mi propio plan',
+  upTitle:'Suba su Resumen de Beneficios y Cobertura', upHint:'Todo plan de salud da a sus miembros este documento estándar (a menudo llamado "SBC"). Búsquelo en la aplicación o sitio web de su aseguradora, o pídalo a su empleador. Es un PDF.',
+  upBtn:'Elegir PDF', upSample:'Probar con un resumen de ejemplo',
+  upPrivacy:'Su archivo se lee solo en este dispositivo. Nunca se sube, se envía ni se guarda.',
+  upReading:'Leyendo su documento…', upDone:'Se encontraron {n} de 8 datos. Revise cada número abajo y corrija lo que no esté bien.',
+  upPartial:'Algunos datos no se encontraron. Están marcados "Revise". Escríbalos desde su documento.',
+  upFail:'No se pudo leer este PDF. Puede ser una imagen escaneada. Escriba los números abajo.',
+  upNotPdf:'Por favor elija un archivo PDF.', upLib:'No se pudo cargar el lector de PDF. Revise su conexión a internet o escriba los números abajo.',
+  ownTitle:'Los números de su plan', ownHint:'Completados desde su documento, o escríbalos desde su tarjeta del seguro o el resumen.',
+  oDed:'Deducible (individual, en la red)', oOop:'Máximo de su bolsillo (individual, en la red)', oPcp:'Copago médico de cabecera', oSpec:'Copago especialista',
+  oCoins:'Coseguro (en la red)', oRef:'¿Necesita referencia para especialistas?', oOon:'Atención fuera de la red', oOonCoins:'Coseguro (fuera de la red)',
+  optNo:'No', optYes:'Sí', optCovered:'Cubierta (cuesta más)', optNotCovered:'No cubierta',
+  copayHint:'Deje un copago vacío si su plan no tiene copago para esa visita (común en planes de deducible alto).',
+  found:'Encontrado en su documento', check:'Revise', myPlan:'Su plan',
+  paUnknown:'Su resumen no lo dice. Pregunte a su aseguradora antes de la cita si necesita autorización previa.',
+  paFromDoc:'Su resumen dice que necesita aprobación previa. Normalmente el consultorio de su médico la pide. Confirme que esté aprobada antes de la cita.',
+  ownNeed:'Escriba al menos su deducible y su máximo de su bolsillo para ver un cálculo.',
+},
+fr:{
+  srcSample:'Essayer un plan d\'exemple', srcOwn:'Utiliser mon propre plan',
+  upTitle:'Téléversez votre résumé des prestations et de la couverture', upHint:'Chaque plan de santé remet ce document standard à ses membres (souvent appelé « SBC »). Trouvez-le dans l\'application ou sur le site de votre assureur, ou demandez-le à votre employeur. C\'est un PDF.',
+  upBtn:'Choisir un PDF', upSample:'Essayer avec un résumé d\'exemple',
+  upPrivacy:'Votre fichier est lu uniquement sur cet appareil. Il n\'est jamais envoyé ni enregistré.',
+  upReading:'Lecture de votre document…', upDone:'{n} éléments sur 8 trouvés. Vérifiez chaque montant ci-dessous et corrigez ce qui semble faux.',
+  upPartial:'Certains éléments n\'ont pas été trouvés. Ils sont marqués « À vérifier ». Saisissez-les depuis votre document.',
+  upFail:'Impossible de lire ce PDF. C\'est peut-être une image numérisée. Saisissez les montants ci-dessous.',
+  upNotPdf:'Veuillez choisir un fichier PDF.', upLib:'Le lecteur PDF n\'a pas pu se charger. Vérifiez votre connexion ou saisissez les montants ci-dessous.',
+  ownTitle:'Les montants de votre plan', ownHint:'Remplis depuis votre document, ou saisissez-les depuis votre carte d\'assurance ou le résumé.',
+  oDed:'Franchise (individuelle, dans le réseau)', oOop:'Plafond annuel (individuel, dans le réseau)', oPcp:'Quote-part médecin traitant', oSpec:'Quote-part spécialiste',
+  oCoins:'Coassurance (dans le réseau)', oRef:'Recommandation nécessaire pour les spécialistes ?', oOon:'Soins hors réseau', oOonCoins:'Coassurance (hors réseau)',
+  optNo:'Non', optYes:'Oui', optCovered:'Couverts (plus chers)', optNotCovered:'Non couverts',
+  copayHint:'Laissez une quote-part vide si votre plan n\'en a pas pour cette visite (fréquent avec les plans à franchise élevée).',
+  found:'Trouvé dans votre document', check:'À vérifier', myPlan:'Votre plan',
+  paUnknown:'Votre résumé ne le précise pas. Demandez à votre assureur avant le rendez-vous si une autorisation préalable est nécessaire.',
+  paFromDoc:'Votre résumé indique qu\'une autorisation préalable est nécessaire. Le cabinet de votre médecin la demande généralement. Confirmez qu\'elle est approuvée avant le rendez-vous.',
+  ownNeed:'Saisissez au moins votre franchise et votre plafond annuel pour voir une estimation.',
+}};
+for(const l in T2) Object.assign(T[l], T2[l]);
+
 /* ───────── Helpers ───────── */
 let L = 'en';
 try{ const s = localStorage.getItem('beforecare_lang'); if(T[s]) L = s; }catch(e){}
@@ -496,7 +603,7 @@ function estimate(svcKey, planKey, net, dedMet, oopMet){
   const oopLeft = Math.max(0, p.oop - Math.max(oopMet, dedMet));
   r.dedLeftBefore = dedLeft;
   if(oopLeft === 0){ r.oopReached = true; r.plan = s.price; r.dedLeftAfter = dedLeft; return r; }
-  if(s.kind === 'copay' && p.copay){          // fixed copay, deductible does not apply
+  if(s.kind === 'copay' && p.copay && p.copay[s.copayKey] != null){   // fixed copay, deductible does not apply
     r.dedApplies = false;
     r.copay = Math.min(p.copay[s.copayKey], s.price);
   } else {                                    // deductible first, then coinsurance
@@ -515,6 +622,116 @@ function estimate(svcKey, planKey, net, dedMet, oopMet){
   r.plan = s.price - total;
   r.dedLeftAfter = Math.max(0, dedLeft - r.ded);
   return r;
+}
+
+/* ───────── "Use my own plan": reading a Summary of Benefits PDF ───────── */
+// Everything here runs in the browser. The file is never sent anywhere or saved.
+const OWN = {pa:{}, found:{}};
+const OWN_FIELDS = ['ded','oop','pcp','spec','coins','ref','oon','ooncoins'];
+const PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+let pdfjsReady = null;
+function loadPdfJs(){
+  if(window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if(!pdfjsReady) pdfjsReady = new Promise((ok, fail) => {
+    const sc = document.createElement('script');
+    sc.src = PDFJS + 'pdf.min.js';
+    sc.onload = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + 'pdf.worker.min.js'; ok(window.pdfjsLib); };
+    sc.onerror = () => { pdfjsReady = null; fail(new Error('lib')); };
+    document.head.appendChild(sc);
+  });
+  return pdfjsReady;
+}
+async function pdfText(buf){
+  const lib = await loadPdfJs();
+  const doc = await lib.getDocument({data: buf}).promise;
+  let out = '';
+  for(let i = 1; i <= Math.min(doc.numPages, 12); i++){
+    const page = await doc.getPage(i);
+    const tc = await page.getTextContent();
+    out += ' ' + tc.items.map(x => x.str).join(' ');
+  }
+  return out.replace(/\s+/g, ' ');
+}
+// Reads the standard SBC wording. Returns only what it actually finds.
+function parseSBC(text){
+  const num = s => +String(s).replace(/,/g, '');
+  const after = (re, len) => { const m = re.exec(text); return m ? text.slice(m.index + m[0].length, m.index + m[0].length + len) : null; };
+  const firstMoney = seg => { const m = seg && seg.match(/\$\s?([\d,]+)/); return m ? num(m[1]) : null; };
+  const r = {pa:{}};
+  r.ded = firstMoney(after(/overall\s+deductible\s*\??/i, 300));
+  r.oop = firstMoney(after(/out-of-pocket\s+limit\s+for\s+this\s+plan\s*\??/i, 300));
+  const ref = after(/referral\s+to\s+see\s+a\s+specialist\s*\??/i, 40);
+  if(ref){ const m = ref.match(/^\W*(yes|no)\b/i); if(m) r.ref = m[1].toLowerCase(); }
+  const visit = seg => {                       // copay, "no charge", or coinsurance first?
+    if(!seg) return undefined;
+    const cp = seg.match(/\$\s?([\d,]+)\s*copay/i), nc = seg.search(/no charge/i), co = seg.search(/\d+\s*%\s*coinsurance/i);
+    const cpAt = cp ? seg.indexOf(cp[0]) : -1;
+    if(cpAt >= 0 && (co < 0 || cpAt < co)) return num(cp[1]);
+    if(nc >= 0 && (co < 0 || nc < co)) return 0;
+    if(co >= 0) return null;                   // coinsurance: no copay, deductible applies
+    return undefined;
+  };
+  const pcp = visit(after(/primary\s+care\s+visit\s+to\s+treat[^$%]*?illness/i, 160) || after(/primary\s+care\s+visit(?!s)/i, 180));
+  const spec = visit(after(/specialist\s+visit/i, 140));
+  if(pcp !== undefined) r.pcp = pcp;
+  if(spec !== undefined) r.spec = spec;
+  const diag = after(/diagnostic\s+test/i, 260) || after(/imaging/i, 260) || '';
+  const pcts = [...diag.matchAll(/(\d+)\s*%\s*coinsurance/gi)].map(m => +m[1]);
+  if(pcts.length) r.coins = pcts[0];
+  if(/not\s+covered/i.test(diag.slice(0, 160))) r.oon = 'no';
+  else if(pcts.length > 1){ r.oon = 'yes'; r.ooncoins = pcts[1]; }
+  const type = text.match(/plan\s+type\s*:?\s*(HMO|EPO|PPO|POS|HDHP)/i);
+  if(type){ r.type = type[1].toUpperCase(); if(!r.oon && /HMO|EPO/.test(r.type)) r.oon = 'no'; }
+  const needsPA = re => { const seg = after(re, 380); return seg ? /pre-?authori[sz]|prior\s+authori[sz]|pre-?certif/i.test(seg) : false; };
+  const img = needsPA(/imaging\s*\(?\s*CT/i);
+  r.pa = {mri: img, ct: img,
+          surgOut: needsPA(/outpatient\s+surgery/i),
+          surgIn: needsPA(/hospital\s+stay/i),
+          med: needsPA(/specialty\s+drugs/i),
+          pt: needsPA(/rehabilitation\s+services/i)};
+  return r;
+}
+function fillOwn(r){
+  OWN.pa = r.pa || {}; OWN.found = {};
+  OWN_FIELDS.forEach(k => {
+    const el = $('o_' + k);
+    if(r[k] !== undefined){ el.value = r[k] === null ? '' : r[k]; }
+    OWN.found[k] = r[k] !== undefined;
+  });
+  paintTags();
+  return OWN_FIELDS.filter(k => OWN.found[k]).length;
+}
+function paintTags(){
+  OWN_FIELDS.forEach(k => {
+    const tg = $('tg_' + k);
+    if(OWN.found[k] === undefined){ tg.textContent = ''; tg.className = 'tag'; return; }
+    tg.textContent = OWN.found[k] ? t('found') : t('check');
+    tg.className = 'tag ' + (OWN.found[k] ? 'found' : 'check');
+  });
+}
+function upStatus(cls, msg){ $('upStatus').innerHTML = msg ? `<div class="alert ${cls}">${esc(msg)}</div>` : ''; }
+async function readPdf(buf){
+  upStatus('a-blue', t('upReading'));
+  let text;
+  try{ text = await pdfText(buf); }
+  catch(e){ upStatus('a-amber', e.message === 'lib' ? t('upLib') : t('upFail')); return; }
+  if(text.replace(/\s/g, '').length < 40){ upStatus('a-amber', t('upFail')); return; }
+  const n = fillOwn(parseSBC(text));
+  if(n === 0) upStatus('a-amber', t('upFail'));
+  else upStatus(n === 8 ? 'a-teal' : 'a-amber', t('upDone', {n}) + (n < 8 ? ' ' + t('upPartial') : ''));
+  render();
+}
+// Builds a plan from the boxes the patient checked or typed.
+function ownPlan(){
+  const v = id => { const x = $(id).value.trim(); return x === '' ? null : Math.max(0, +x); };
+  const ded = v('o_ded'), oop = v('o_oop');
+  if(ded === null || oop === null) return null;
+  const pcp = v('o_pcp'), spec = v('o_spec'), coins = (v('o_coins') ?? 20) / 100;
+  const oonCovered = $('o_oon').value === 'yes';
+  return {ded, oop: Math.max(oop, ded), coins,
+          copay: (pcp !== null || spec !== null) ? {pcp, spec} : null,
+          referral: $('o_ref').value === 'yes',
+          oon: oonCovered ? {ded: ded * 2, coins: (v('o_ooncoins') ?? Math.min(100, coins * 200)) / 100, billedMult: 1.6} : null};
 }
 
 /* ───────── Drawing the page ───────── */
@@ -538,28 +755,42 @@ function planSummary(pk){
     `<b>${t('sumDed')}:</b> ${money(p.ded)}`,
     `<b>${t('sumOop')}:</b> ${money(p.oop)}`,
     `<b>${t('sumCoins')}:</b> ${p.coins*100}%`,
-    p.copay ? `<b>${t('sumCopay')}:</b> ${money(p.copay.pcp)} / ${money(p.copay.spec)}` : esc(t('sumNoCopay')),
+    p.copay ? `<b>${t('sumCopay')}:</b> ${p.copay.pcp != null ? money(p.copay.pcp) : '—'} / ${p.copay.spec != null ? money(p.copay.spec) : '—'}` : esc(t('sumNoCopay')),
   ];
   let extra = '';
   if(p.referral) extra += `<div style="margin-top:4px">• ${esc(t('sumRef'))}</div>`;
   if(!p.oon) extra += `<div>• ${esc(t('sumOonNo'))}</div>`;
-  $('plansum').innerHTML = parts.join(' · ') + extra;
+  $('plansum').innerHTML = (pk === 'own' ? `<b>${esc(t('myPlan'))}</b> · ` : '') + parts.join(' · ') + extra;
 }
 function statusRow(title, level, text){
   const cls = {yes:'p-yes', no:'p-no', maybe:'p-maybe'}[level];
   return `<div class="status"><span class="pill ${cls}">${esc(t(level))}</span><div><h3>${esc(title)}</h3><p>${esc(text)}</p></div></div>`;
 }
 function render(){
-  const sk = $('service').value, pk = $('plan').value;
+  const own = document.querySelector('input[name="src"]:checked').value === 'own';
+  $('samplePane').hidden = own; $('ownPane').hidden = !own;
+  const sk = $('service').value;
+  let pk = $('plan').value;
+  if(own){ PLANS.own = ownPlan(); pk = 'own'; }
   const net = document.querySelector('input[name="net"]:checked').value;
   const dedMet = Math.max(0, +$('dedMet').value || 0);
   const oopMet = Math.max(0, +$('oopMet').value || 0);
   const s = SERVICES[sk], p = PLANS[pk];
+  if(!p){                                     // own plan, numbers not entered yet
+    $('plansum').innerHTML = esc(t('ownNeed'));
+    $('approvals').innerHTML = $('cost').innerHTML = `<p class="hint">${esc(t('ownNeed'))}</p>`;
+    $('script').innerHTML = ''; window._script = '';
+    return;
+  }
   planSummary(pk);
 
   // approvals
-  const paText = {yes:t('paYes'), no:t('paNo'), maybe:t('paMaybe')}[s.pa];
-  let a = statusRow(t('paT'), s.pa, paText);
+  let paLevel = s.pa, paText = {yes:t('paYes'), no:t('paNo'), maybe:t('paMaybe')}[s.pa];
+  if(own && s.pa !== 'no'){                   // trust only what the patient's own summary says
+    if(OWN.pa[sk]){ paLevel = 'yes'; paText = t('paFromDoc'); }
+    else { paLevel = 'maybe'; paText = t('paUnknown'); }
+  }
+  let a = statusRow(t('paT'), paLevel, paText);
   a += statusRow(t('precertT'), s.precert ? 'yes' : 'no', s.precert ? t('precertYes') : t('precertNo'));
   const needRef = p.referral && s.referral;
   a += statusRow(t('refT'), needRef ? 'yes' : 'no', needRef ? t('refYes') : t('refNo'));
@@ -601,13 +832,13 @@ function render(){
   // questions
   const svcName = T[L].svc[sk];
   const ins = [t('q1', {s: svcName})];
-  if(s.pa !== 'no') ins.push(t('q2'));
+  if(paLevel !== 'no') ins.push(t('q2'));
   if(s.precert) ins.push(t('q2b'));
   ins.push(t('q3'));
   if(needRef) ins.push(t('q6'));
   ins.push(t('q4'), t('q5'));
   const prov = [t('p1')];
-  if(s.pa !== 'no' || s.precert) prov.push(t('p2'));
+  if(paLevel !== 'no' || s.precert) prov.push(t('p2'));
   prov.push(t('p3'), t('p4'));
   window._script = [t('whoIns'), ...ins.map((q,i) => (i+1)+'. '+q), '', t('whoProv'), ...prov.map((q,i) => (i+1)+'. '+q)].join('\n');
   $('script').innerHTML =
@@ -623,9 +854,24 @@ $('plan').addEventListener('change', () => {          // keep sample numbers sen
   if(+$('dedMet').value > p.ded) $('dedMet').value = p.ded;
   render();
 });
+document.querySelectorAll('input[name="src"]').forEach(el => el.addEventListener('change', render));
+document.querySelectorAll('.own').forEach(el => el.addEventListener('input', () => {
+  const k = el.id.slice(2); if(OWN.found[k] !== undefined){ delete OWN.found[k]; paintTags(); }   // edited by the patient
+  render();
+}));
+$('sbcFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if(!f) return;
+  if(!/pdf$/i.test(f.type) && !/\.pdf$/i.test(f.name)){ upStatus('a-amber', t('upNotPdf')); return; }
+  readPdf(await f.arrayBuffer());
+});
+$('sampleSbc').addEventListener('click', async () => {
+  try{ const res = await fetch('sample-summary-of-benefits.pdf'); if(!res.ok) throw 0; readPdf(await res.arrayBuffer()); }
+  catch(e){ upStatus('a-amber', t('upFail')); }
+});
 $('lang').addEventListener('change', e => {
   L = e.target.value; try{ localStorage.setItem('beforecare_lang', L); }catch(err){}
-  staticText(); render(); $('copied').textContent = ''; $('cbOk').style.display = 'none';
+  staticText(); paintTags(); upStatus('', ''); render(); $('copied').textContent = ''; $('cbOk').style.display = 'none';
 });
 $('copyBtn').addEventListener('click', async () => {
   try{ await navigator.clipboard.writeText(window._script); $('copied').textContent = t('copied'); }
