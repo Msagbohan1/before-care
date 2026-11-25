@@ -624,7 +624,7 @@ for(const l in T2) Object.assign(T[l], T2[l]);
 const T3 = {
 en:{
   rcTitle:'Track what you pay', rcHint:'After each visit, add your receipt or the Explanation of Benefits (EOB) your insurer mails you. Your totals update the deductible and out-of-pocket numbers above, so you have your own record to compare with your insurer\'s.',
-  rcBtn:'Add a receipt or EOB (PDF or photo)', rcSample:'Try a sample receipt', rcSampleEob:'Try a sample EOB', rcHand:'Type a payment',
+  rcBtn:'Add a receipt or EOB (PDF or photo)', rcSample:'Sample receipt', rcSampleEob:'Sample EOB', rcHand:'Type a payment',
   rcPrivacy:'Your payments are saved only in this browser on this device. They are never sent anywhere. You can delete them at any time.',
   rcReading:'Reading your document…', rcReadingPhoto:'Reading your photo… this can take up to a minute the first time.',
   rcRead:'Check what was found and fix anything wrong before adding it.', rcEob:'This looks like an Explanation of Benefits. The amount below is what your insurer applied to your deductible, the most exact number to use.',
@@ -642,7 +642,7 @@ en:{
 },
 es:{
   rcTitle:'Lleve la cuenta de lo que paga', rcHint:'Después de cada visita, agregue su recibo o la Explicación de Beneficios (EOB) que le envía su aseguradora. Sus totales actualizan el deducible y el máximo de su bolsillo de arriba, así tiene su propio registro para compararlo con el de su aseguradora.',
-  rcBtn:'Agregar recibo o EOB (PDF o foto)', rcSample:'Probar un recibo de ejemplo', rcSampleEob:'Probar una EOB de ejemplo', rcHand:'Escribir un pago',
+  rcBtn:'Agregar recibo o EOB (PDF o foto)', rcSample:'Recibo de ejemplo', rcSampleEob:'EOB de ejemplo', rcHand:'Escribir un pago',
   rcPrivacy:'Sus pagos se guardan solo en este navegador, en este dispositivo. Nunca se envían. Puede borrarlos cuando quiera.',
   rcReading:'Leyendo su documento…', rcReadingPhoto:'Leyendo su foto… la primera vez puede tardar hasta un minuto.',
   rcRead:'Revise lo que se encontró y corrija lo que no esté bien antes de agregarlo.', rcEob:'Esto parece una Explicación de Beneficios. La cantidad abajo es lo que su aseguradora aplicó a su deducible, el número más exacto.',
@@ -660,7 +660,7 @@ es:{
 },
 fr:{
   rcTitle:'Suivez ce que vous payez', rcHint:'Après chaque visite, ajoutez votre reçu ou le relevé de prestations (EOB) envoyé par votre assureur. Vos totaux mettent à jour la franchise et le plafond ci-dessus : vous avez ainsi votre propre registre à comparer avec celui de votre assureur.',
-  rcBtn:'Ajouter un reçu ou un EOB (PDF ou photo)', rcSample:'Essayer un reçu d\'exemple', rcSampleEob:'Essayer un EOB d\'exemple', rcHand:'Saisir un paiement',
+  rcBtn:'Ajouter un reçu ou un EOB (PDF ou photo)', rcSample:'Reçu d\'exemple', rcSampleEob:'EOB d\'exemple', rcHand:'Saisir un paiement',
   rcPrivacy:'Vos paiements sont enregistrés uniquement dans ce navigateur, sur cet appareil. Ils ne sont jamais envoyés. Vous pouvez les supprimer à tout moment.',
   rcReading:'Lecture de votre document…', rcReadingPhoto:'Lecture de votre photo… la première fois, cela peut prendre jusqu\'à une minute.',
   rcRead:'Vérifiez ce qui a été trouvé et corrigez ce qui est faux avant de l\'ajouter.', rcEob:'Cela ressemble à un relevé de prestations. Le montant ci-dessous est ce que votre assureur a imputé à votre franchise : c\'est le chiffre le plus exact.',
@@ -1112,9 +1112,43 @@ $('sampleSbc').addEventListener('click', async () => {
   try{ const res = await fetch('sample-summary-of-benefits.pdf'); if(!res.ok) throw 0; readPdf(await res.arrayBuffer()); }
   catch(e){ upStatus('a-amber', t('upFail')); }
 });
+$('rcFile').addEventListener('change', e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if(!f) return;
+  const isPdf = /pdf$/i.test(f.type) || /\.pdf$/i.test(f.name), isImg = /^image\//i.test(f.type);
+  if(!isPdf && !isImg){ rcStatus('a-amber', t('rcBadType')); return; }
+  readReceipt(f, isPdf);
+});
+const sampleDoc = async (name, isPdf) => {
+  try{ const res = await fetch(name); if(!res.ok) throw 0; readReceipt(await res.blob(), isPdf); }
+  catch(e){ rcStatus('a-amber', t('rcFail')); openReview({}); }
+};
+$('rcSample').addEventListener('click', () => sampleDoc('sample-receipt.png', false));
+$('rcSampleEob').addEventListener('click', () => sampleDoc('sample-eob.pdf', true));
+$('rcHand').addEventListener('click', () => { rcStatus('', ''); openReview({}); });
+$('rv_type').addEventListener('change', typeHint);
+$('rvCancel').addEventListener('click', () => { $('rcReview').hidden = true; rcStatus('', ''); });
+$('rcReview').addEventListener('submit', e => {
+  e.preventDefault();
+  const amt = +$('rv_amt').value;
+  if(!(amt > 0)){ rcStatus('a-amber', t('rvNeedAmt')); $('rv_amt').focus(); return; }
+  LEDGER.push({id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+               prov: $('rv_prov').value.trim().slice(0, 80), date: $('rv_date').value || new Date().toISOString().slice(0, 10),
+               amt: Math.round(amt * 100) / 100, type: $('rv_type').value});
+  $('rcReview').hidden = true; rcStatus('a-teal', t('rvAdded'));
+  ledgerChanged();
+});
+$('ledger').addEventListener('click', e => {
+  const del = e.target.closest('[data-del]');
+  if(del){ LEDGER = LEDGER.filter(it => it.id !== del.dataset.del); ledgerChanged(); return; }
+  if(e.target.id === 'delAll'){
+    if(!delArmed){ delArmed = true; renderLedger(); return; }
+    LEDGER = []; ledgerChanged(); rcStatus('', '');
+  }
+});
 $('lang').addEventListener('change', e => {
   L = e.target.value; try{ localStorage.setItem('beforecare_lang', L); }catch(err){}
-  staticText(); paintTags(); upStatus('', ''); render(); $('copied').textContent = ''; $('cbOk').style.display = 'none';
+  staticText(); paintTags(); upStatus('', ''); rcStatus('', ''); typeHint(); renderLedger(); applyLedger(); render(); $('copied').textContent = ''; $('cbOk').style.display = 'none';
 });
 $('copyBtn').addEventListener('click', async () => {
   try{ await navigator.clipboard.writeText(window._script); $('copied').textContent = t('copied'); }
@@ -1133,6 +1167,7 @@ $('cbForm').addEventListener('submit', e => {
 $('lang').value = L;
 staticText();
 $('plan').value = 'ppo'; $('service').value = 'mri'; $('dedMet').value = 800; $('oopMet').value = 950;
+typeHint(); renderLedger(); applyLedger();
 render();
 </script>
 </body>
